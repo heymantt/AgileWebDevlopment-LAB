@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }} | TrackMint</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+    <header class="bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col gap-4">
+            <div>
+                <h1 class="text-2xl font-bold">TrackMint</h1>
+                <p class="text-sm text-slate-500">Track smart. Spend better.</p>
+            </div>
+
+            <nav class="flex flex-wrap gap-2">
+                <a href="{{ url_for('main.landing') }}" class="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm">Home</a>
+                <a href="{{ url_for('auth.signup') }}" class="px-4 py-2 rounded-lg bg-white border text-sm">Signup</a>
+                <a href="{{ url_for('auth.login') }}" class="px-4 py-2 rounded-lg bg-white border text-sm">Login</a>
+                <a href="{{ url_for('main.dashboard') }}" class="px-4 py-2 rounded-lg bg-white border text-sm">Dashboard</a>
+                <a href="{{ url_for('receipts.upload_receipt') }}" class="px-4 py-2 rounded-lg bg-white border text-sm">Upload Receipt</a>
+                <a href="{{ url_for('receipts.archive') }}" class="px-4 py-2 rounded-lg bg-white border text-sm">Receipt Archive</a>
+                <a href="{{ url_for('income.income_home') }}" class="px-4 py-2 rounded-lg bg-white border text-sm">Income</a>
+                <a href="{{ url_for('insights.insights_home') }}" class="px-4 py-2 rounded-lg bg-white border text-sm">Insights</a>
+                <a href="{{ url_for('groups.groups_home') }}" class="px-4 py-2 rounded-lg bg-white border text-sm">Groups</a>
+                <a href="{{ url_for('leaderboard.leaderboard_home') }}" class="px-4 py-2 rounded-lg bg-white border text-sm">Leaderboard</a>
+                <a href="{{ url_for('main.profile') }}" class="px-4 py-2 rounded-lg bg-white border text-sm">Profile</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-10">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
