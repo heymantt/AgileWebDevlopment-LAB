@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title or "TrackMint" }}</title>
+</head>
+<body>
+    <nav>
+        <a href="{{ url_for('main.landing') }}">Home</a>
+        <a href="{{ url_for('auth.signup') }}">Signup</a>
+        <a href="{{ url_for('auth.login') }}">Login</a>
+        <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('receipts.upload_receipt') }}">Upload Receipt</a>
+        <a href="{{ url_for('receipts.archive') }}">Receipt Archive</a>
+        <a href="{{ url_for('income.income_home') }}">Income</a>
+        <a href="{{ url_for('insights.insights_home') }}">Insights</a>
+        <a href="{{ url_for('groups.groups_home') }}">Groups</a>
+        <a href="{{ url_for('leaderboard.leaderboard_home') }}">Leaderboard</a>
+        <a href="{{ url_for('main.profile') }}">Profile</a>
+    </nav>
+
+    <hr>
+
+    {% block content %}{% endblock %}
+</body>
+</html>
