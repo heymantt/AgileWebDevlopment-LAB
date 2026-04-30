@@ -1,5 +1,55 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block content %}
+<h1>Upload Receipt</h1>
 
-{% block content %}
-<h2 class="text-3xl font-bold">Upload Receipt</h2>
+<form
+  method="POST"
+  enctype="multipart/form-data"
+  action="{{ url_for('receipts.upload_receipt') }}"
+>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+  <div>
+    <label for="merchant">Merchant</label><br />
+    <input type="text" id="merchant" name="merchant" required />
+  </div>
+
+  <br />
+
+  <div>
+    <label for="amount">Amount</label><br />
+    <input type="number" step="0.01" id="amount" name="amount" required />
+  </div>
+
+  <br />
+
+  <div>
+    <label for="category">Category</label><br />
+    <input type="text" id="category" name="category" required />
+  </div>
+
+  <br />
+
+  <div>
+    <label for="expense_date">Date</label><br />
+    <input type="date" id="expense_date" name="expense_date" required />
+  </div>
+
+  <br />
+
+  <div>
+    <label for="notes">Notes</label><br />
+    <textarea id="notes" name="notes" rows="4"></textarea>
+  </div>
+
+  <br />
+
+  <div>
+    <label for="receipt_image">Receipt Image / PDF</label><br />
+    <input type="file" id="receipt_image" name="receipt_image" />
+  </div>
+
+  <br />
+
+  <button type="submit">Save Receipt</button>
+</form>
 {% endblock %}
