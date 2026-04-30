@@ -1,5 +1,5 @@
-{% extends "base.html" %}
-
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <h1>Dashboard</h1>
+<p>Welcome, {{ current_user.username }}</p>
+<p>Logged in: {{ current_user.is_authenticated }}</p>
 {% endblock %}
