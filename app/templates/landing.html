@@ -1,5 +1,238 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Landing Page</h1>
+<style>
+    .hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 60px 20px;
+        border-radius: 12px;
+        text-align: center;
+        margin-bottom: 60px;
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+    }
+
+    .hero h1 {
+        font-size: 48px;
+        margin-bottom: 20px;
+        font-weight: 700;
+    }
+
+    .hero p {
+        font-size: 20px;
+        margin-bottom: 30px;
+        opacity: 0.95;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .cta-buttons {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 14px 32px;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background-color: white;
+        color: #667eea;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-secondary {
+        background-color: transparent;
+        color: white;
+        border: 2px solid white;
+    }
+
+    .btn-secondary:hover {
+        background-color: white;
+        color: #667eea;
+    }
+
+    .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        margin-bottom: 60px;
+    }
+
+    .feature-card {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        text-align: center;
+        transition: all 0.3s;
+        border-top: 4px solid #667eea;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .feature-icon {
+        font-size: 48px;
+        margin-bottom: 15px;
+    }
+
+    .feature-card h3 {
+        font-size: 20px;
+        margin-bottom: 10px;
+        color: #2c3e50;
+    }
+
+    .feature-card p {
+        color: #7f8c8d;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .stats {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 12px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 30px;
+        text-align: center;
+        margin-bottom: 60px;
+    }
+
+    .stat {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .stat-number {
+        font-size: 36px;
+        font-weight: 700;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        opacity: 0.95;
+    }
+
+    .section-title {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 40px;
+        text-align: center;
+        color: #2c3e50;
+    }
+
+    @media (max-width: 768px) {
+        .hero h1 {
+            font-size: 32px;
+        }
+
+        .hero p {
+            font-size: 16px;
+        }
+
+        .cta-buttons {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="hero">
+    <h1>💳 Welcome to TrackMint</h1>
+    <p>Smart expense tracking and credit card management for the modern professional. Take control of your finances effortlessly.</p>
+    <div class="cta-buttons">
+        {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('auth.signup') }}" class="btn btn-primary">Get Started</a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary">Sign In</a>
+        {% else %}
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="stats">
+    <div class="stat">
+        <div class="stat-number">50K+</div>
+        <div class="stat-label">Active Users</div>
+    </div>
+    <div class="stat">
+        <div class="stat-number">$2.5B</div>
+        <div class="stat-label">Tracked Expenses</div>
+    </div>
+    <div class="stat">
+        <div class="stat-number">99.9%</div>
+        <div class="stat-label">Uptime</div>
+    </div>
+    <div class="stat">
+        <div class="stat-number">24/7</div>
+        <div class="stat-label">Support</div>
+    </div>
+</div>
+
+<h2 class="section-title">Key Features</h2>
+<div class="features">
+    <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Smart Analytics</h3>
+        <p>Get detailed insights into your spending patterns with advanced analytics and visual reports.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">🧾</div>
+        <h3>Receipt Management</h3>
+        <p>Upload and organize receipts automatically. Never lose track of your transactions again.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">👥</div>
+        <h3>Group Tracking</h3>
+        <p>Share expenses with friends and family. Split bills fairly and track shared spending.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">💰</div>
+        <h3>Income Tracking</h3>
+        <p>Monitor multiple income streams and get a complete picture of your financial health.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">🏆</div>
+        <h3>Leaderboards</h3>
+        <p>Compete with friends on savings goals and achieve better financial discipline.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Bank-Level Security</h3>
+        <p>Your financial data is protected with enterprise-grade encryption and security.</p>
+    </div>
+</div>
+
+{% if not current_user.is_authenticated %}
+<div style="background: #ecf0f1; padding: 40px; border-radius: 12px; text-align: center;">
+    <h2>Ready to take control of your finances?</h2>
+    <p style="margin-top: 10px; font-size: 16px; color: #7f8c8d;">Join thousands of users who are already tracking their expenses with TrackMint.</p>
+    <a href="{{ url_for('auth.signup') }}" class="btn btn-primary" style="margin-top: 20px; background-color: #667eea; color: white;">Create Free Account</a>
+</div>
+{% endif %}
 {% endblock %}

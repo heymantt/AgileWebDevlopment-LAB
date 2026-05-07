@@ -1,5 +1,116 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="text-3xl font-bold">Monthly Insights</h2>
+<style>
+    .page-header {
+        margin-bottom: 40px;
+    }
+
+    .page-header h1 {
+        font-size: 32px;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        color: #7f8c8d;
+        font-size: 16px;
+    }
+
+    .insights-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+
+    .insight-card {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        border-top: 4px solid #667eea;
+    }
+
+    .insight-icon {
+        font-size: 48px;
+        margin-bottom: 15px;
+    }
+
+    .insight-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .insight-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 5px;
+    }
+
+    .insight-label {
+        font-size: 12px;
+        color: #7f8c8d;
+    }
+
+    .empty-state {
+        background: white;
+        padding: 60px 40px;
+        text-align: center;
+        border-radius: 12px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .empty-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+    }
+
+    .empty-text {
+        font-size: 18px;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    .empty-subtext {
+        color: #7f8c8d;
+    }
+</style>
+
+<div class="page-header">
+    <h1>📊 Financial Insights</h1>
+    <p>Analyze your spending patterns and get personalized recommendations.</p>
+</div>
+
+<div class="insights-grid">
+    <div class="insight-card">
+        <div class="insight-icon">📈</div>
+        <div class="insight-title">Monthly Average</div>
+        <div class="insight-value">$0.00</div>
+        <div class="insight-label">No data yet</div>
+    </div>
+    <div class="insight-card">
+        <div class="insight-icon">💰</div>
+        <div class="insight-title">Largest Expense</div>
+        <div class="insight-value">$0.00</div>
+        <div class="insight-label">No data yet</div>
+    </div>
+    <div class="insight-card">
+        <div class="insight-icon">🎯</div>
+        <div class="insight-title">Top Category</div>
+        <div class="insight-value">-</div>
+        <div class="insight-label">No data yet</div>
+    </div>
+</div>
+
+<div class="empty-state">
+    <div class="empty-icon">📉</div>
+    <div class="empty-text">Start tracking to see your insights</div>
+    <div class="empty-subtext">Once you upload receipts, we'll generate detailed analytics about your spending.</div>
+</div>
+
 {% endblock %}

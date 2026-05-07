@@ -1,5 +1,57 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="text-3xl font-bold">Logout</h2>
+<style>
+    .logout-container {
+        max-width: 500px;
+        margin: 100px auto;
+        text-align: center;
+    }
+
+    .logout-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+    }
+
+    .logout-title {
+        font-size: 28px;
+        color: #2c3e50;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .logout-message {
+        color: #7f8c8d;
+        font-size: 16px;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 12px 32px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+</style>
+
+<div class=\"logout-container\">
+    <div class=\"logout-icon\">👋</div>
+    <h1 class=\"logout-title\">See You Later!</h1>
+    <p class=\"logout-message\">You have been successfully logged out from TrackMint. Your data is safe and secure.</p>
+    <a href=\"{{ url_for('main.landing') }}\" class=\"btn\">Return to Home</a>
+</div>
+
 {% endblock %}

@@ -1,5 +1,101 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="text-3xl font-bold">{{ heading if heading else "Group Detail" }}</h2>
+<style>
+    .page-header {
+        margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+        font-size: 32px;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .btn:hover {
+        background: #5568d3;
+    }
+
+    .btn-secondary {
+        background: #ecf0f1;
+        color: #2c3e50;
+    }
+
+    .btn-secondary:hover {
+        background: #bdc3c7;
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+    }
+
+    .card {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .card-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 20px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #7f8c8d;
+    }
+</style>
+
+<div class="page-header">
+    <h1>{{ heading if heading else "Group Detail" }}</h1>
+    <div class="header-actions">
+        <button class="btn">Edit Group</button>
+        <button class="btn btn-secondary">Leave Group</button>
+    </div>
+</div>
+
+<div class="content-grid">
+    <div class="card">
+        <div class="card-title">Group Info</div>
+        <div class="empty-state">
+            <p>Group information will appear here.</p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-title">Members</div>
+        <div class="empty-state">
+            <p>No members yet.</p>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-title">Shared Expenses</div>
+        <div class="empty-state">
+            <p>No shared expenses yet.</p>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

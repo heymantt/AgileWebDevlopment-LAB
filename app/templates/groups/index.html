@@ -1,5 +1,99 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="text-3xl font-bold">Groups</h2>
+<style>
+    .page-header {
+        margin-bottom: 40px;
+    }
+
+    .page-header h1 {
+        font-size: 32px;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        color: #7f8c8d;
+        font-size: 16px;
+    }
+
+    .cta-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 12px;
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .cta-section h2 {
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+
+    .cta-section p {
+        opacity: 0.95;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+
+    .btn {
+        padding: 12px 32px;
+        background: white;
+        color: #667eea;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .groups-list {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        padding: 60px 40px;
+        text-align: center;
+    }
+
+    .empty-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+    }
+
+    .empty-text {
+        font-size: 18px;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    .empty-subtext {
+        color: #7f8c8d;
+        margin-bottom: 30px;
+    }
+</style>
+
+<div class="page-header">
+    <h1>👥 Groups & Shared Expenses</h1>
+    <p>Create groups and split expenses with friends and family.</p>
+</div>
+
+<div class="cta-section">
+    <h2>Share Expenses with Others</h2>
+    <p>Create a group, add members, and track shared expenses together.</p>
+    <button class="btn">+ Create Group</button>
+</div>
+
+<div class="groups-list">
+    <div class="empty-icon">👥</div>
+    <div class="empty-text">No groups yet</div>
+    <div class="empty-subtext">Create a group to start sharing expenses with friends and family.</div>
+</div>
+
 {% endblock %}
