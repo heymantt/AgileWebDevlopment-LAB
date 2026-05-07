@@ -1,5 +1,27 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block content %}
+<h1>Receipt Detail</h1>
 
-{% block content %}
-<h2 class="text-3xl font-bold">{{ heading if heading else "Receipt Detail" }}</h2>
+<p><strong>Merchant:</strong> {{ receipt.merchant }}</p>
+<p><strong>Amount:</strong> ${{ "%.2f"|format(receipt.amount) }}</p>
+<p><strong>Category:</strong> {{ receipt.category }}</p>
+<p><strong>Date:</strong> {{ receipt.expense_date }}</p>
+<p><strong>Notes:</strong> {{ receipt.notes or "—" }}</p>
+
+{% if receipt.image_filename %}
+<p>
+  <strong>Uploaded file:</strong>
+  <a
+    href="{{ url_for('static', filename='uploads/receipts/' ~ receipt.image_filename) }}"
+    target="_blank"
+  >
+    Open file
+  </a>
+</p>
+{% endif %}
+
+<p>
+  <a href="{{ url_for('receipts.edit_receipt', receipt_id=receipt.id) }}"
+    >Edit Receipt</a
+  >
+</p>
 {% endblock %}
