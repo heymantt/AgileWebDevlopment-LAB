@@ -1,289 +1,55 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block content %}
+<h1>Upload Receipt</h1>
 
-{% block content %}
-<style>
-    .upload-container {
-        max-width: 700px;
-        margin: 40px auto;
-    }
+<form
+  method="POST"
+  enctype="multipart/form-data"
+  action="{{ url_for('receipts.upload_receipt') }}"
+>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
-    .page-header {
-        margin-bottom: 30px;
-    }
+  <div>
+    <label for="merchant">Merchant</label><br />
+    <input type="text" id="merchant" name="merchant" required />
+  </div>
 
-    .page-header h1 {
-        font-size: 32px;
-        color: #2c3e50;
-        margin-bottom: 10px;
-    }
+  <br />
 
-    .page-header p {
-        color: #7f8c8d;
-        font-size: 16px;
-    }
+  <div>
+    <label for="amount">Amount</label><br />
+    <input type="number" step="0.01" id="amount" name="amount" required />
+  </div>
 
-    .upload-card {
-        background: white;
-        padding: 40px;
-        border-radius: 12px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-    }
+  <br />
 
-    .upload-zone {
-        border: 2px dashed #bdc3c7;
-        border-radius: 8px;
-        padding: 40px;
-        text-align: center;
-        background: #f9f9f9;
-        cursor: pointer;
-        transition: all 0.3s;
-        margin-bottom: 30px;
-    }
+  <div>
+    <label for="category">Category</label><br />
+    <input type="text" id="category" name="category" required />
+  </div>
 
-    .upload-zone:hover {
-        border-color: #667eea;
-        background: #f5f7ff;
-    }
+  <br />
 
-    .upload-zone.dragover {
-        border-color: #667eea;
-        background: #f5f7ff;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
+  <div>
+    <label for="expense_date">Date</label><br />
+    <input type="date" id="expense_date" name="expense_date" required />
+  </div>
 
-    .upload-icon {
-        font-size: 48px;
-        margin-bottom: 15px;
-    }
+  <br />
 
-    .upload-text {
-        font-size: 16px;
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 5px;
-    }
+  <div>
+    <label for="notes">Notes</label><br />
+    <textarea id="notes" name="notes" rows="4"></textarea>
+  </div>
 
-    .upload-subtext {
-        font-size: 13px;
-        color: #7f8c8d;
-    }
+  <br />
 
-    .file-input {
-        display: none;
-    }
+  <div>
+    <label for="receipt_image">Receipt Image / PDF</label><br />
+    <input type="file" id="receipt_image" name="receipt_image" />
+  </div>
 
-    .form-group {
-        margin-bottom: 20px;
-    }
+  <br />
 
-    .form-group label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 8px;
-        color: #2c3e50;
-        font-size: 14px;
-    }
-
-    .form-group input,
-    .form-group textarea,
-    .form-group select {
-        width: 100%;
-        padding: 12px 16px;
-        border: 2px solid #ecf0f1;
-        border-radius: 8px;
-        font-size: 14px;
-        font-family: inherit;
-        transition: all 0.3s;
-    }
-
-    .form-group input:focus,
-    .form-group textarea:focus,
-    .form-group select:focus {
-        outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    .form-group textarea {
-        resize: vertical;
-        min-height: 80px;
-    }
-
-    .btn {
-        padding: 12px 32px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-        width: 100%;
-    }
-
-    .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-    }
-
-    .info-box {
-        background: #ecf0f1;
-        border-left: 4px solid #667eea;
-        padding: 15px;
-        border-radius: 4px;
-        margin-top: 20px;
-        font-size: 13px;
-        color: #2c3e50;
-    }
-
-    @media (max-width: 600px) {
-        .upload-container {
-            margin: 20px auto;
-        }
-
-        .page-header h1 {
-            font-size: 24px;
-        }
-
-        .upload-card {
-            padding: 20px;
-        }
-
-        .upload-zone {
-            padding: 25px;
-        }
-    }
-</style>
-
-<div class="upload-container">
-    <div class="page-header">
-        <h1>🧾 Upload Receipt</h1>
-        <p>Record an expense with or without uploading a receipt image.</p>
-    </div>
-
-    <div class="upload-card">
-        <div class="upload-zone" id="uploadZone">
-            <div class="upload-icon">📸</div>
-            <div class="upload-text">Click to upload or drag and drop</div>
-            <div class="upload-subtext">Optional - PNG, JPG, PDF up to 5MB</div>
-            <input type="file" id="fileInput" class="file-input" accept=".jpg,.jpeg,.png,.pdf,.gif" name="file">
-        </div>
-
-        <form method="POST" enctype="multipart/form-data" id="uploadForm">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <input type="hidden" id="fileInputHidden" name="file" />
-
-            <div class="form-group">
-                <label for="amount">Amount ($)</label>
-                <input
-                    type="number"
-                    id="amount"
-                    name="amount"
-                    step="0.01"
-                    placeholder="e.g., 45.99"
-                    required
-                />
-            </div>
-
-            <div class="form-group">
-                <label for="category">Category</label>
-                <select id="category" name="category" required>
-                    <option value="">Select a category</option>
-                    <option value="grocery">🛒 Groceries</option>
-                    <option value="dining">🍽️ Dining & Restaurants</option>
-                    <option value="transport">🚗 Transportation</option>
-                    <option value="utilities">💡 Utilities</option>
-                    <option value="shopping">🛍️ Shopping</option>
-                    <option value="entertainment">🎬 Entertainment</option>
-                    <option value="health">🏥 Health & Wellness</option>
-                    <option value="other">📌 Other</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="merchant">Merchant/Store Name</label>
-                <input
-                    type="text"
-                    id="merchant"
-                    name="merchant"
-                    placeholder="e.g., Amazon, Walmart, Starbucks"
-                />
-            </div>
-
-            <div class="form-group">
-                <label for="description">Description (Optional)</label>
-                <textarea
-                    id="description"
-                    name="description"
-                    placeholder="Add any additional notes about this receipt..."
-                ></textarea>
-            </div>
-
-            <button type="submit" class="btn">� Record Expense</button>
-        </form>
-
-        <div class="info-box">
-            ℹ️ <strong>Note:</strong> Receipt file upload is optional. You can record the expense details without uploading an image. For best results, upload a clear photo of the receipt.
-        </div>
-    </div>
-</div>
-
-<script>
-    const uploadZone = document.getElementById('uploadZone');
-    const fileInput = document.getElementById('fileInput');
-    const uploadForm = document.getElementById('uploadForm');
-
-    uploadZone.addEventListener('click', () => fileInput.click());
-
-    uploadZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadZone.classList.add('dragover');
-    });
-
-    uploadZone.addEventListener('dragleave', () => {
-        uploadZone.classList.remove('dragover');
-    });
-
-    uploadZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadZone.classList.remove('dragover');
-        fileInput.files = e.dataTransfer.files;
-        updateUploadZone();
-    });
-
-    fileInput.addEventListener('change', () => {
-        updateUploadZone();
-    });
-
-    function updateUploadZone() {
-        if (fileInput.files.length > 0) {
-            const file = fileInput.files[0];
-            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-            uploadZone.innerHTML = `
-                <div class="upload-icon">✅</div>
-                <div class="upload-text">${file.name}</div>
-                <div class="upload-subtext">Size: ${sizeMB} MB - Click to change</div>
-            `;
-        }
-    }
-
-    uploadForm.addEventListener('submit', (e) => {
-        const amount = document.getElementById('amount').value;
-        const category = document.getElementById('category').value;
-
-        if (!amount || amount <= 0) {
-            e.preventDefault();
-            alert('Please enter a valid amount');
-            return false;
-        }
-
-        if (!category) {
-            e.preventDefault();
-            alert('Please select a category');
-            return false;
-        }
-    });
-</script>
-
+  <button type="submit">Save Receipt</button>
+</form>
 {% endblock %}

@@ -1,7 +1,10 @@
-from flask import Blueprint, render_template, request, jsonify
-from flask_login import login_required, current_user
-from app.extensions import db
 from datetime import datetime, date
+
+from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask_login import login_required, current_user
+
+from app.extensions import db
+from app.models import Income
 
 income_bp = Blueprint("income", __name__)
 
@@ -12,85 +15,74 @@ except ImportError:
     Income = None
 
 
-@income_bp.route("/")
+@income_bp.route("/", methods=["GET", "POST"])
 @login_required
 def income_home():
-    """Display income tracking page with all user's income records."""
-    if Income is None:
-        return render_template("income/index.html", page_title="Income", income_records=[], total_income=0)
-    
-    income_records = Income.query.filter_by(user_id=current_user.id).order_by(Income.income_date.desc()).all()
-    total_income = sum(record.amount for record in income_records)
-    return render_template("income/index.html", page_title="Income", income_records=income_records, total_income=total_income)
+    if request.method == "POST":
+        source = request.form.get("source", "").strip()
+        amount_raw = request.form.get("amount", "").strip()
+        income_date_raw = request.form.get("income_date", "").strip()
+        income_type = request.form.get("income_type", "").strip()
+        notes = request.form.get("notes", "").strip()
 
+        errors = []
 
-@income_bp.route("/add", methods=["POST"])
-@login_required
-def add_income():
-    """Add new income record."""
-    if Income is None:
-        return jsonify({'success': False, 'message': 'Income feature not configured'}), 500
-    
-    try:
-        data = request.get_json()
-        
-        # Validate input
-        if not data.get('amount') or not data.get('source'):
-            return jsonify({'success': False, 'message': 'Amount and source are required'}), 400
-        
+        if not source:
+            errors.append("Source is required.")
+        if not amount_raw:
+            errors.append("Amount is required.")
+        if not income_date_raw:
+            errors.append("Date is required.")
+        if not income_type:
+            errors.append("Income type is required.")
+
         try:
-            amount = float(data.get('amount'))
+            amount = float(amount_raw)
             if amount <= 0:
-                return jsonify({'success': False, 'message': 'Amount must be greater than 0'}), 400
-        except (ValueError, TypeError):
-            return jsonify({'success': False, 'message': 'Invalid amount'}), 400
-        
-        income_date = data.get('income_date')
-        if income_date:
-            try:
-                income_date = datetime.strptime(income_date, '%Y-%m-%d').date()
-            except ValueError:
-                income_date = date.today()
-        else:
+                errors.append("Amount must be greater than 0.")
+        except ValueError:
+            errors.append("Amount must be a valid number.")
+            amount = 0
+
+        try:
+            income_date = datetime.strptime(income_date_raw, "%Y-%m-%d").date()
+        except ValueError:
+            errors.append("Date must be valid.")
             income_date = date.today()
-        
-        # Create new income record
-        new_income = Income(
-            user_id=current_user.id,
-            amount=amount,
-            source=data.get('source'),
-            description=data.get('description', ''),
-            income_date=income_date
-        )
-        
-        db.session.add(new_income)
-        db.session.commit()
-        
-        return jsonify({'success': True, 'message': 'Income added successfully', 'id': new_income.id}), 201
-    
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500
 
+        if errors:
+            for error in errors:
+                flash(error, "error")
+        else:
+            entry = Income(
+                user_id=current_user.id,
+                source=source,
+                amount=amount,
+                income_date=income_date,
+                income_type=income_type,
+                notes=notes if notes else None
+            )
+            db.session.add(entry)
+            db.session.commit()
+            flash("Income entry added successfully.", "success")
+            return redirect(url_for("income.income_home"))
 
-@income_bp.route("/<int:income_id>/delete", methods=["POST"])
-@login_required
-def delete_income(income_id):
-    """Delete an income record."""
-    if Income is None:
-        return jsonify({'success': False, 'message': 'Income feature not configured'}), 500
-    
-    try:
-        income = Income.query.filter_by(id=income_id, user_id=current_user.id).first()
-        
-        if not income:
-            return jsonify({'success': False, 'message': 'Income record not found'}), 404
-        
-        db.session.delete(income)
-        db.session.commit()
-        
-        return jsonify({'success': True, 'message': 'Income deleted successfully'}), 200
-    
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500
+    incomes = (
+        Income.query
+        .filter_by(user_id=current_user.id)
+        .order_by(Income.income_date.desc(), Income.created_at.desc())
+        .all()
+    )
+
+    today = date.today()
+    monthly_total = sum(
+        item.amount for item in incomes
+        if item.income_date.year == today.year and item.income_date.month == today.month
+    )
+
+    return render_template(
+        "income/index.html",
+        page_title="Income",
+        incomes=incomes,
+        monthly_total=monthly_total
+    )

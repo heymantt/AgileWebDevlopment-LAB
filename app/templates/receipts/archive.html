@@ -1,263 +1,57 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block content %}
+<h1>Receipt Archive</h1>
 
-{% block content %}
-<style>
-    .page-header {
-        margin-bottom: 40px;
-    }
+<form method="GET" action="{{ url_for('receipts.archive') }}">
+  <label for="q">Search merchant</label>
+  <input type="text" id="q" name="q" value="{{ search_query or '' }}" />
 
-    .page-header h1 {
-        font-size: 32px;
-        color: #2c3e50;
-        margin-bottom: 10px;
-    }
+  <label for="category">Category</label>
+  <select id="category" name="category">
+    {% if selected_category == "" %}
+    <option value="" selected>All</option>
+    {% else %}
+    <option value="">All</option>
+    {% endif %} {% for cat in categories %} {% if selected_category == cat %}
+    <option value="{{ cat }}" selected>{{ cat }}</option>
+    {% else %}
+    <option value="{{ cat }}">{{ cat }}</option>
+    {% endif %} {% endfor %}
+  </select>
 
-    .page-header p {
-        color: #7f8c8d;
-        font-size: 16px;
-    }
+  <button type="submit">Filter</button>
+</form>
 
-    .filter-bar {
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        margin-bottom: 30px;
-        display: flex;
-        gap: 15px;
-        flex-wrap: wrap;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    .filter-group {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-    }
-
-    .filter-group label {
-        font-weight: 600;
-        font-size: 14px;
-        color: #2c3e50;
-    }
-
-    .filter-group input,
-    .filter-group select {
-        padding: 8px 12px;
-        border: 1px solid #ecf0f1;
-        border-radius: 6px;
-        font-size: 13px;
-    }
-
-    .receipt-list {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-        overflow: hidden;
-    }
-
-    .empty-state {
-        padding: 60px 40px;
-        text-align: center;
-    }
-
-    .empty-icon {
-        font-size: 64px;
-        margin-bottom: 20px;
-    }
-
-    .empty-text {
-        font-size: 18px;
-        color: #2c3e50;
-        margin-bottom: 10px;
-        font-weight: 600;
-    }
-
-    .empty-subtext {
-        color: #7f8c8d;
-        margin-bottom: 30px;
-    }
-
-    .btn {
-        padding: 10px 20px;
-        background: #667eea;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 14px;
-        transition: all 0.3s;
-    }
-
-    .btn:hover {
-        background: #5568d3;
-    }
-
-    .receipt-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .receipt-table thead {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-    }
-
-    .receipt-table th {
-        padding: 15px;
-        text-align: left;
-        font-weight: 600;
-    }
-
-    .receipt-table td {
-        padding: 15px;
-        border-bottom: 1px solid #ecf0f1;
-    }
-
-    .receipt-table tbody tr:hover {
-        background-color: #f9f9f9;
-    }
-
-    .receipt-icon {
-        font-size: 20px;
-        margin-right: 10px;
-    }
-
-    .receipt-name {
-        color: #667eea;
-        text-decoration: none;
-        font-weight: 500;
-    }
-
-    .receipt-name:hover {
-        text-decoration: underline;
-    }
-
-    .btn-small {
-        padding: 6px 12px;
-        background: #667eea;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 12px;
-        font-weight: 600;
-        margin-right: 5px;
-    }
-
-    .btn-small:hover {
-        background: #5568d3;
-    }
-
-    .btn-danger {
-        background: #dc3545;
-    }
-
-    .btn-danger:hover {
-        background: #c82333;
-    }
-
-    .receipt-count {
-        background: #ecf0f1;
-        padding: 15px 20px;
-        border-radius: 12px;
-        margin-bottom: 20px;
-        font-weight: 600;
-        color: #2c3e50;
-    }
-
-    .btn-upload {
-        padding: 10px 20px;
-        background: #667eea;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 14px;
-        text-decoration: none;
-        display: inline-block;
-    }
-
-    .btn-upload:hover {
-        background: #5568d3;
-    }
-</style>
-
-<div class="page-header">
-    <h1>🗂️ Receipt Archive</h1>
-    <p>View and manage all your uploaded receipts and transactions.</p>
-</div>
-
-<div class="filter-bar">
-    <div class="filter-group">
-        <label>Search:</label>
-        <input type="text" id="searchInput" placeholder="Search receipts...">
-    </div>
-    <div style="margin-left: auto;">
-        <a href="{{ url_for('receipts.upload_receipt') }}" class="btn-upload">+ Upload New Receipt</a>
-    </div>
-</div>
+<br />
 
 {% if receipts %}
-<div class="receipt-count">
-    📊 Total Receipts: <strong>{{ receipts|length }}</strong>
-</div>
-
-<div class="receipt-list">
-    <table class="receipt-table">
-        <thead>
-            <tr>
-                <th>File Name</th>
-                <th>Size</th>
-                <th>Date Uploaded</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for receipt in receipts %}
-            <tr>
-                <td>
-                    <span class="receipt-icon">📄</span>
-                    <span class="receipt-name">{{ receipt.filename }}</span>
-                </td>
-                <td>{{ receipt.size }}</td>
-                <td>{{ receipt.date }}</td>
-                <td>
-                    <button class="btn-small">View</button>
-                    <button class="btn-small btn-danger">Delete</button>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
+<table border="1" cellpadding="8">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Merchant</th>
+      <th>Category</th>
+      <th>Amount</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for receipt in receipts %}
+    <tr>
+      <td>{{ receipt.expense_date }}</td>
+      <td>{{ receipt.merchant }}</td>
+      <td>{{ receipt.category }}</td>
+      <td>${{ "%.2f"|format(receipt.amount) }}</td>
+      <td>
+        <a
+          href="{{ url_for('receipts.receipt_detail', receipt_id=receipt.id) }}"
+        >
+          View
+        </a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 {% else %}
-<div class="receipt-list">
-    <div class="empty-state">
-        <div class="empty-icon">📁</div>
-        <div class="empty-text">No receipts uploaded yet</div>
-        <div class="empty-subtext">Start uploading receipts to build your expense history.</div>
-        <a href="{{ url_for('receipts.upload_receipt') }}" class="btn-upload">Upload Your First Receipt</a>
-    </div>
-</div>
-{% endif %}
-
-<script>
-    // Simple search functionality
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('keyup', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('.receipt-table tbody tr');
-            
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
-            });
-        });
-    }
-</script>
-
-{% endblock %}
+<p>No receipts found.</p>
+{% endif %} {% endblock %}

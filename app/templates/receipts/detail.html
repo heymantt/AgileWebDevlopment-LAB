@@ -1,119 +1,27 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block content %}
+<h1>Receipt Detail</h1>
 
-{% block content %}
-<style>
-    .page-header {
-        margin-bottom: 30px;
-    }
+<p><strong>Merchant:</strong> {{ receipt.merchant }}</p>
+<p><strong>Amount:</strong> ${{ "%.2f"|format(receipt.amount) }}</p>
+<p><strong>Category:</strong> {{ receipt.category }}</p>
+<p><strong>Date:</strong> {{ receipt.expense_date }}</p>
+<p><strong>Notes:</strong> {{ receipt.notes or "—" }}</p>
 
-    .page-header h1 {
-        font-size: 32px;
-        color: #2c3e50;
-        margin-bottom: 10px;
-    }
+{% if receipt.image_filename %}
+<p>
+  <strong>Uploaded file:</strong>
+  <a
+    href="{{ url_for('static', filename='uploads/receipts/' ~ receipt.image_filename) }}"
+    target="_blank"
+  >
+    Open file
+  </a>
+</p>
+{% endif %}
 
-    .header-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 15px;
-    }
-
-    .btn {
-        padding: 10px 20px;
-        background: #667eea;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 14px;
-    }
-
-    .btn:hover {
-        background: #5568d3;
-    }
-
-    .btn-danger {
-        background: #dc3545;
-    }
-
-    .btn-danger:hover {
-        background: #c82333;
-    }
-
-    .detail-card {
-        background: white;
-        padding: 40px;
-        border-radius: 12px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
-    .receipt-preview {
-        width: 100%;
-        height: 300px;
-        background: #f5f7fa;
-        border: 2px dashed #bdc3c7;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 48px;
-        margin-bottom: 30px;
-    }
-
-    .info-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 15px 0;
-        border-bottom: 1px solid #ecf0f1;
-    }
-
-    .info-row:last-child {
-        border-bottom: none;
-    }
-
-    .info-label {
-        font-weight: 600;
-        color: #2c3e50;
-    }
-
-    .info-value {
-        color: #7f8c8d;
-    }
-</style>
-
-<div class="page-header">
-    <h1>{{ heading if heading else "Receipt Detail" }}</h1>
-    <div class="header-actions">
-        <button class="btn">Edit</button>
-        <button class="btn btn-danger">Delete</button>
-    </div>
-</div>
-
-<div class="detail-card">
-    <div class="receipt-preview">🧾</div>
-    
-    <div class="info-row">
-        <span class="info-label">Amount</span>
-        <span class="info-value">$0.00</span>
-    </div>
-    
-    <div class="info-row">
-        <span class="info-label">Category</span>
-        <span class="info-value">-</span>
-    </div>
-    
-    <div class="info-row">
-        <span class="info-label">Merchant</span>
-        <span class="info-value">-</span>
-    </div>
-    
-    <div class="info-row">
-        <span class="info-label">Date</span>
-        <span class="info-value">-</span>
-    </div>
-</div>
-
+<p>
+  <a href="{{ url_for('receipts.edit_receipt', receipt_id=receipt.id) }}"
+    >Edit Receipt</a
+  >
+</p>
 {% endblock %}
