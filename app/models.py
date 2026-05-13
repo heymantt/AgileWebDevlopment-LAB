@@ -1,5 +1,4 @@
 from datetime import datetime, date
-from decimal import Decimal
 
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -23,9 +22,6 @@ class User(UserMixin, db.Model):
     current_streak = db.Column(db.Integer, default=0, nullable=False)
     last_upload_date = db.Column(db.Date, nullable=True)
 
-    # Relationships
-    incomes = db.relationship("Income", backref="user", lazy=True, cascade="all, delete-orphan")
-
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
 
@@ -37,22 +33,34 @@ class User(UserMixin, db.Model):
 
 
 class Income(db.Model):
-    """Model to track income sources for each user."""
-    __tablename__ = "incomes"
+    __tablename__ = "income"
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
     
-    # Income details
-    source = db.Column(db.String(100), nullable=False)  # e.g., "Salary", "Freelance", "Investment"
-    amount = db.Column(db.Numeric(12, 2), nullable=False)
-    category = db.Column(db.String(50), nullable=False, default="Other")
-    description = db.Column(db.String(500), nullable=True)
+    amount = db.Column(db.Float, nullable=False)
+    source = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
     
-    # Dates
-    income_date = db.Column(db.Date, nullable=False, default=date.today)
+    income_date = db.Column(db.Date, default=date.today, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     def __repr__(self) -> str:
-        return f"<Income {self.source}: {self.amount}>"
+        return f"<Income {self.source} ${self.amount}>"
+
+
+class Group(db.Model):
+    __tablename__ = "groups"
+
+    id = db.Column(db.Integer, primary_key=True)
+    creator_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    def __repr__(self) -> str:
+        return f"<Group {self.name}>"

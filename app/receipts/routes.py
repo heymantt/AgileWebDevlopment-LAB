@@ -34,34 +34,28 @@ def upload_receipt():
                 flash("Invalid amount entered.", "error")
                 return redirect(url_for("receipts.upload_receipt"))
             
-            # Check if file was uploaded
-            if "file" not in request.files:
-                flash("No1 file selected. Please upload a receipt image or PDF.", "error")
-                return redirect(url_for("receipts.upload_receipt"))
+            # File upload is optional
+            filename = None
+            if "file" in request.files:
+                file = request.files["file"]
+                if file and file.filename != "":
+                    if not allowed_file(file.filename):
+                        flash("Invalid file type. Only PNG, JPG, JPEG, GIF, and PDF files are allowed.", "error")
+                        return redirect(url_for("receipts.upload_receipt"))
+                    
+                    # Create uploads directory if it doesn't exist
+                    upload_folder = os.path.join("app", "static", "uploads", "receipts")
+                    os.makedirs(upload_folder, exist_ok=True)
+                    
+                    # Generate unique filename
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_")
+                    filename = secure_filename(timestamp + file.filename)
+                    
+                    # Save file
+                    file_path = os.path.join(upload_folder, filename)
+                    file.save(file_path)
             
-            file = request.files["file"]
-            
-            # if file.filename == "":
-            #     flash("No file selected. Please upload a receipt image or PDF.", "error")
-            #     return redirect(url_for("receipts.upload_receipt"))
-            
-            if not allowed_file(file.filename):
-                flash("Invalid file type. Only PNG, JPG, JPEG, GIF, and PDF files are allowed.", "error")
-                return redirect(url_for("receipts.upload_receipt"))
-            
-            # Create uploads directory if it doesn't exist
-            upload_folder = os.path.join("app", "static", "uploads", "receipts")
-            os.makedirs(upload_folder, exist_ok=True)
-            
-            # Generate unique filename
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_")
-            filename = secure_filename(timestamp + file.filename)
-            
-            # Save file
-            file_path = os.path.join(upload_folder, filename)
-            file.save(file_path)
-            
-            flash(f"✓ Receipt uploaded successfully! Amount: ${amount_value:.2f} ({category})", "success")
+            flash(f"✓ Receipt recorded successfully! Amount: ${amount_value:.2f} ({category})", "success")
             return redirect(url_for("receipts.archive"))
             
         except Exception as e:

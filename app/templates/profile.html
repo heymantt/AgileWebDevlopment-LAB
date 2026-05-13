@@ -155,6 +155,113 @@
         font-size: 14px;
     }
 
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 450px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        color: #2c3e50;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #7f8c8d;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 14px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ecf0f1;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+    }
+
+    .modal-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .modal-buttons button {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-save {
+        background: #667eea;
+        color: white;
+    }
+
+    .btn-save:hover {
+        background: #5568d3;
+    }
+
+    .btn-cancel {
+        background: #ecf0f1;
+        color: #2c3e50;
+    }
+
+    .btn-cancel:hover {
+        background: #bdc3c7;
+    }
+
     @media (max-width: 600px) {
         .profile-header {
             padding: 30px 20px;
@@ -226,8 +333,8 @@
             </div>
 
             <div class="action-buttons">
-                <button class="btn btn-primary">Edit Profile</button>
-                <button class="btn btn-secondary">Change Password</button>
+                <button class="btn btn-primary" onclick="openEditProfileModal()">Edit Profile</button>
+                <button class="btn btn-secondary" onclick="openChangePasswordModal()">Change Password</button>
             </div>
 
             <div class="account-section">
@@ -242,5 +349,149 @@
         </div>
     </div>
 </div>
+
+<!-- Edit Profile Modal -->
+<div id="editProfileModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Edit Profile</h2>
+            <button class="modal-close" onclick="closeEditProfileModal()">&times;</button>
+        </div>
+        <form id="editProfileForm">
+            <div class="form-group">
+                <label for="editUsername">Username</label>
+                <input type="text" id="editUsername" value="{{ current_user.username }}" required>
+            </div>
+            <div class="modal-buttons">
+                <button type="submit" class="btn-save">Save Changes</button>
+                <button type="button" class="btn-cancel" onclick="closeEditProfileModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div id="changePasswordModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Change Password</h2>
+            <button class="modal-close" onclick="closeChangePasswordModal()">&times;</button>
+        </div>
+        <form id="changePasswordForm">
+            <div class="form-group">
+                <label for="oldPassword">Current Password</label>
+                <input type="password" id="oldPassword" required>
+            </div>
+            <div class="form-group">
+                <label for="newPassword">New Password</label>
+                <input type="password" id="newPassword" placeholder="Minimum 6 characters" required>
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirm New Password</label>
+                <input type="password" id="confirmPassword" required>
+            </div>
+            <div class="modal-buttons">
+                <button type="submit" class="btn-save">Change Password</button>
+                <button type="button" class="btn-cancel" onclick="closeChangePasswordModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEditProfileModal() {
+        document.getElementById('editProfileModal').classList.add('show');
+    }
+
+    function closeEditProfileModal() {
+        document.getElementById('editProfileModal').classList.remove('show');
+    }
+
+    function openChangePasswordModal() {
+        document.getElementById('changePasswordModal').classList.add('show');
+    }
+
+    function closeChangePasswordModal() {
+        document.getElementById('changePasswordModal').classList.remove('show');
+        document.getElementById('changePasswordForm').reset();
+    }
+
+    document.getElementById('editProfileForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const username = document.getElementById('editUsername').value.trim();
+
+        try {
+            const response = await fetch('{{ url_for("main.update_profile") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    username: username
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('Profile updated successfully!');
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) {
+            alert('An error occurred: ' + error.message);
+        }
+    });
+
+    document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const oldPassword = document.getElementById('oldPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        try {
+            const response = await fetch('{{ url_for("main.change_password") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    old_password: oldPassword,
+                    new_password: newPassword,
+                    confirm_password: confirmPassword
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('Password changed successfully!');
+                closeChangePasswordModal();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) {
+            alert('An error occurred: ' + error.message);
+        }
+    });
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const editModal = document.getElementById('editProfileModal');
+        const passwordModal = document.getElementById('changePasswordModal');
+        
+        if (event.target == editModal) {
+            editModal.classList.remove('show');
+        }
+        if (event.target == passwordModal) {
+            passwordModal.classList.remove('show');
+        }
+    }
+</script>
 
 {% endblock %}

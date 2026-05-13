@@ -8,5 +8,4 @@ app = create_app(config_name)
 
 
 if __name__ == "__main__":
-    # Run with debug enabled for development
-    app.run(debug=True)
+    app.run(debug=app.config.get("DEBUG", False))

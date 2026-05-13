@@ -24,17 +24,22 @@
         border-radius: 12px;
         text-align: center;
         margin-bottom: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
 
     .cta-section h2 {
         font-size: 24px;
         margin-bottom: 15px;
+        text-align: left;
     }
 
     .cta-section p {
         opacity: 0.95;
         margin-bottom: 20px;
         font-size: 14px;
+        text-align: left;
     }
 
     .btn {
@@ -53,10 +58,67 @@
         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
     }
 
+    .btn-primary {
+        background: #667eea;
+        color: white;
+        padding: 12px 32px;
+    }
+
+    .btn-primary:hover {
+        background: #5568d3;
+    }
+
     .groups-list {
         background: white;
         border-radius: 12px;
         box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    .groups-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        padding: 40px;
+    }
+
+    .group-card {
+        border: 2px solid #ecf0f1;
+        border-radius: 12px;
+        padding: 25px;
+        background: #f9f9f9;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .group-card:hover {
+        border-color: #667eea;
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .group-name {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .group-description {
+        font-size: 14px;
+        color: #7f8c8d;
+        margin-bottom: 15px;
+    }
+
+    .group-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: #95a5a6;
+    }
+
+    .empty-state {
         padding: 60px 40px;
         text-align: center;
     }
@@ -77,6 +139,121 @@
         color: #7f8c8d;
         margin-bottom: 30px;
     }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        color: #2c3e50;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #7f8c8d;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ecf0f1;
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .modal-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .modal-buttons button {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-save {
+        background: #667eea;
+        color: white;
+    }
+
+    .btn-save:hover {
+        background: #5568d3;
+    }
+
+    .btn-cancel {
+        background: #ecf0f1;
+        color: #2c3e50;
+    }
+
+    .btn-cancel:hover {
+        background: #bdc3c7;
+    }
 </style>
 
 <div class="page-header">
@@ -85,15 +262,110 @@
 </div>
 
 <div class="cta-section">
-    <h2>Share Expenses with Others</h2>
-    <p>Create a group, add members, and track shared expenses together.</p>
-    <button class="btn">+ Create Group</button>
+    <div>
+        <h2>Share Expenses with Others</h2>
+        <p>Create a group, add members, and track shared expenses together.</p>
+    </div>
+    <button class="btn" onclick="openCreateGroupModal()">+ Create Group</button>
 </div>
 
 <div class="groups-list">
-    <div class="empty-icon">👥</div>
-    <div class="empty-text">No groups yet</div>
-    <div class="empty-subtext">Create a group to start sharing expenses with friends and family.</div>
+    {% if groups %}
+        <div class="groups-grid">
+            {% for group in groups %}
+            <div class="group-card" onclick="window.location='/groups/{{ group.id }}'">
+                <div class="group-name">{{ group.name }}</div>
+                <div class="group-description">{{ group.description or 'No description' }}</div>
+                <div class="group-info">
+                    <span>Created: {{ group.created_at.strftime('%Y-%m-%d') }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <div class="empty-text">No groups yet</div>
+            <div class="empty-subtext">Create a group to start sharing expenses with friends and family.</div>
+            <button class="btn btn-primary" onclick="openCreateGroupModal()">Create Your First Group</button>
+        </div>
+    {% endif %}
 </div>
+
+<!-- Create Group Modal -->
+<div id="createGroupModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Create New Group</h2>
+            <button class="modal-close" onclick="closeCreateGroupModal()">&times;</button>
+        </div>
+        <form id="createGroupForm">
+            <div class="form-group">
+                <label for="groupName">Group Name *</label>
+                <input type="text" id="groupName" placeholder="e.g., Summer Trip, Roommates" required>
+            </div>
+            <div class="form-group">
+                <label for="groupDescription">Description (Optional)</label>
+                <textarea id="groupDescription" placeholder="Add details about this group..."></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button type="submit" class="btn-save">Create Group</button>
+                <button type="button" class="btn-cancel" onclick="closeCreateGroupModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openCreateGroupModal() {
+        document.getElementById('createGroupModal').classList.add('show');
+    }
+
+    function closeCreateGroupModal() {
+        document.getElementById('createGroupModal').classList.remove('show');
+        document.getElementById('createGroupForm').reset();
+    }
+
+    document.getElementById('createGroupForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const name = document.getElementById('groupName').value.trim();
+        const description = document.getElementById('groupDescription').value.trim();
+
+        try {
+            const response = await fetch('{{ url_for("groups.create_group") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    name: name,
+                    description: description
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('Group created successfully!');
+                closeCreateGroupModal();
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) {
+            alert('An error occurred: ' + error.message);
+        }
+    });
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('createGroupModal');
+        if (event.target == modal) {
+            modal.classList.remove('show');
+        }
+    }
+</script>
 
 {% endblock %}

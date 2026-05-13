@@ -159,14 +159,14 @@
 <div class="upload-container">
     <div class="page-header">
         <h1>🧾 Upload Receipt</h1>
-        <p>Upload a photo or PDF of your receipt to track expenses automatically.</p>
+        <p>Record an expense with or without uploading a receipt image.</p>
     </div>
 
     <div class="upload-card">
         <div class="upload-zone" id="uploadZone">
             <div class="upload-icon">📸</div>
             <div class="upload-text">Click to upload or drag and drop</div>
-            <div class="upload-subtext">PNG, JPG, PDF up to 5MB</div>
+            <div class="upload-subtext">Optional - PNG, JPG, PDF up to 5MB</div>
             <input type="file" id="fileInput" class="file-input" accept=".jpg,.jpeg,.png,.pdf,.gif" name="file">
         </div>
 
@@ -220,11 +220,11 @@
                 ></textarea>
             </div>
 
-            <button type="submit" class="btn">📤 Upload Receipt</button>
+            <button type="submit" class="btn">� Record Expense</button>
         </form>
 
         <div class="info-box">
-            ℹ️ <strong>Tip:</strong> For best results, ensure the receipt is clear and all text is readable. We'll automatically extract key information and categorize your expense.
+            ℹ️ <strong>Note:</strong> Receipt file upload is optional. You can record the expense details without uploading an image. For best results, upload a clear photo of the receipt.
         </div>
     </div>
 </div>
@@ -269,12 +269,6 @@
     }
 
     uploadForm.addEventListener('submit', (e) => {
-        if (!fileInput.files.length) {
-            e.preventDefault();
-            alert('Please select a file to upload');
-            return false;
-        }
-
         const amount = document.getElementById('amount').value;
         const category = document.getElementById('category').value;
 
