@@ -1,0 +1,29 @@
+{% extends "base.html" %} {% block content %}
+<h1>Login</h1>
+
+<form method="POST" action="{{ url_for('auth.login') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+  <div>
+    <label for="email">Email</label><br />
+    <input
+      type="email"
+      id="email"
+      name="email"
+      value="{{ request.form.get('email', '') }}"
+      required
+    />
+  </div>
+
+  <br />
+
+  <div>
+    <label for="password">Password</label><br />
+    <input type="password" id="password" name="password" required />
+  </div>
+
+  <br />
+
+  <button type="submit">Login</button>
+</form>
+{% endblock %}

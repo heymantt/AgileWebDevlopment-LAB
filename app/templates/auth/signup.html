@@ -1,0 +1,38 @@
+<form method="POST" action="{{ url_for('auth.signup') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+  <div>
+    <label for="username">Username</label><br />
+    <input type="text" id="username" name="username" required />
+  </div>
+
+  <br />
+
+  <div>
+    <label for="email">Email</label><br />
+    <input type="email" id="email" name="email" required />
+  </div>
+
+  <br />
+
+  <div>
+    <label for="password">Password</label><br />
+    <input type="password" id="password" name="password" required />
+  </div>
+
+  <br />
+
+  <div>
+    <label for="confirm_password">Confirm Password</label><br />
+    <input
+      type="password"
+      id="confirm_password"
+      name="confirm_password"
+      required
+    />
+  </div>
+
+  <br />
+
+  <button type="submit">Create Account</button>
+</form>
