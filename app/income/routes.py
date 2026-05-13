@@ -8,6 +8,12 @@ from app.models import Income
 
 income_bp = Blueprint("income", __name__)
 
+# Import Income model - will be created if needed
+try:
+    from app.models import Income
+except ImportError:
+    Income = None
+
 
 @income_bp.route("/", methods=["GET", "POST"])
 @login_required

@@ -98,6 +98,8 @@ def upload_receipt():
     return render_template("receipts/upload.html", page_title="Upload Receipt")
 
 
+
+
 @receipts_bp.route("/archive")
 @login_required
 def archive():
