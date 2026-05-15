@@ -103,6 +103,12 @@ class Income(db.Model):
     income_date = db.Column(db.Date, nullable=False)
     income_type = db.Column(db.String(80), nullable=False)
     notes = db.Column(db.Text, nullable=True)
+    
+    # New fields for recurring income
+    frequency = db.Column(db.String(20), default="one-time", nullable=False)  # one-time, daily, weekly, monthly, yearly
+    category = db.Column(db.String(80), nullable=True)
+    start_date = db.Column(db.Date, nullable=True)
+    end_date = db.Column(db.Date, nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(
