@@ -173,12 +173,12 @@ def add_group_expense(group_id):
         else:
             data = request.form
 
-        merchant = data.get('merchant', '').strip()
-        amount_raw = data.get('amount', '').strip()
-        category = data.get('category', '').strip()
-        expense_date_raw = data.get('expense_date', '').strip()
-        notes = data.get('notes', '').strip()
-        split_type = data.get('split_type', 'equal').strip()  # 'equal' or 'custom'
+        merchant = str(data.get('merchant', '') or '').strip()
+        amount_raw = data.get('amount', '')
+        category = str(data.get('category', '') or '').strip()
+        expense_date_raw = str(data.get('expense_date', '') or '').strip()
+        notes = str(data.get('notes', '') or '').strip()
+        split_type = str(data.get('split_type', 'equal') or 'equal').strip()
 
         errors = []
 
@@ -195,7 +195,7 @@ def add_group_expense(group_id):
             amount = float(amount_raw)
             if amount <= 0:
                 errors.append("Amount must be greater than 0.")
-        except ValueError:
+        except (ValueError, TypeError):
             errors.append("Amount must be a valid number.")
             amount = 0
 
@@ -227,12 +227,12 @@ def add_group_expense(group_id):
 
         # Create splits
         if split_type == 'equal':
-            split_amount = amount / len(group.members)
+            split_amount = round(amount / len(group.members), 2)
             for member in group.members:
                 split = ExpenseSplit(
                     expense_id=receipt.id,
                     member_id=member.id,
-                    amount=split,
+                    amount=split_amount,
                     paid=False
                 )
                 db.session.add(split)

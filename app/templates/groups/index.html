@@ -142,7 +142,6 @@
 
     /* Modal Styles */
     .modal {
-        display: none;
         position: fixed;
         z-index: 1000;
         left: 0;
@@ -152,10 +151,9 @@
         background-color: rgba(0, 0, 0, 0.5);
     }
 
-    .modal.show {
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    .modal.active {
+        opacity: 1;
+        visibility: visible;
     }
 
     .modal-content {
@@ -308,6 +306,11 @@
                 <label for="groupDescription">Description (Optional)</label>
                 <textarea id="groupDescription" placeholder="Add details about this group..."></textarea>
             </div>
+            <div class="form-group">
+                <label for="groupMembers">Members *</label>
+                <input type="text" id="groupMembers" placeholder="e.g., alice, bob@email.com, charlie" required>
+                <small style="color:#7f8c8d; font-size:12px; margin-top:4px; display:block;">Enter usernames or emails, separated by commas. At least one member is required.</small>
+            </div>
             <div class="modal-buttons">
                 <button type="submit" class="btn-save">Create Group</button>
                 <button type="button" class="btn-cancel" onclick="closeCreateGroupModal()">Cancel</button>
@@ -318,11 +321,11 @@
 
 <script>
     function openCreateGroupModal() {
-        document.getElementById('createGroupModal').classList.add('show');
+        document.getElementById('createGroupModal').classList.add('active');
     }
 
     function closeCreateGroupModal() {
-        document.getElementById('createGroupModal').classList.remove('show');
+        document.getElementById('createGroupModal').classList.remove('active');
         document.getElementById('createGroupForm').reset();
     }
 
@@ -331,6 +334,14 @@
         
         const name = document.getElementById('groupName').value.trim();
         const description = document.getElementById('groupDescription').value.trim();
+        const membersRaw = document.getElementById('groupMembers').value.trim();
+
+        if (!membersRaw) {
+            alert('Please add at least one member.');
+            return;
+        }
+
+        const members = membersRaw.split(',').map(m => m.trim()).filter(m => m);
 
         try {
             const response = await fetch('{{ url_for("groups.create_group") }}', {
@@ -339,16 +350,12 @@
                     'Content-Type': 'application/json',
                     'X-CSRFToken': '{{ csrf_token() }}'
                 },
-                body: JSON.stringify({
-                    name: name,
-                    description: description
-                })
+                body: JSON.stringify({ name, description, members })
             });
 
             const data = await response.json();
             
             if (data.success) {
-                alert('Group created successfully!');
                 closeCreateGroupModal();
                 location.reload();
             } else {
@@ -362,8 +369,8 @@
     // Close modal when clicking outside
     window.onclick = function(event) {
         const modal = document.getElementById('createGroupModal');
-        if (event.target == modal) {
-            modal.classList.remove('show');
+        if (event.target === modal) {
+            modal.classList.remove('active');
         }
     }
 </script>
