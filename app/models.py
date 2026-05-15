@@ -43,6 +43,21 @@ class User(UserMixin, db.Model):
     def __repr__(self) -> str:
         return f"<User {self.username}>"
 
+class Group(db.Model):
+    __tablename__ = "groups"
+
+    id = db.Column(db.Integer, primary_key=True)
+    creator_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    creator = db.relationship("User", backref="groups")
+
+    def __repr__(self):
+        return f"<Group {self.name}>"
 
 class Receipt(db.Model):
     __tablename__ = "receipts"

@@ -1,57 +1,113 @@
-{% extends "base.html" %} {% block content %}
-<h1>Receipt Archive</h1>
+{% extends "base.html" %}
 
-<form method="GET" action="{{ url_for('receipts.archive') }}">
-  <label for="q">Search merchant</label>
-  <input type="text" id="q" name="q" value="{{ search_query or '' }}" />
+{% block content %}
 
-  <label for="category">Category</label>
-  <select id="category" name="category">
-    {% if selected_category == "" %}
-    <option value="" selected>All</option>
-    {% else %}
-    <option value="">All</option>
-    {% endif %} {% for cat in categories %} {% if selected_category == cat %}
-    <option value="{{ cat }}" selected>{{ cat }}</option>
-    {% else %}
-    <option value="{{ cat }}">{{ cat }}</option>
-    {% endif %} {% endfor %}
-  </select>
+<section class="receipt-archive-page">
+  <div class="receipt-archive-container">
 
-  <button type="submit">Filter</button>
-</form>
+    <div class="archive-header">
+      <div>
+        <p class="page-label">Receipt Records</p>
+        <h1>Receipt Archive</h1>
+        <p>Search, filter, and review all saved receipt entries.</p>
+      </div>
 
-<br />
+      <a href="{{ url_for('receipts.upload_receipt') }}" class="archive-add-btn">
+        + Add Receipt
+      </a>
+    </div>
 
-{% if receipts %}
-<table border="1" cellpadding="8">
-  <thead>
-    <tr>
-      <th>Date</th>
-      <th>Merchant</th>
-      <th>Category</th>
-      <th>Amount</th>
-      <th>Action</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for receipt in receipts %}
-    <tr>
-      <td>{{ receipt.expense_date }}</td>
-      <td>{{ receipt.merchant }}</td>
-      <td>{{ receipt.category }}</td>
-      <td>${{ "%.2f"|format(receipt.amount) }}</td>
-      <td>
-        <a
-          href="{{ url_for('receipts.receipt_detail', receipt_id=receipt.id) }}"
-        >
-          View
-        </a>
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-{% else %}
-<p>No receipts found.</p>
-{% endif %} {% endblock %}
+    <div class="archive-filter-card">
+      <form method="GET" class="archive-filter-form">
+        <div class="filter-group">
+          <label for="merchant">Search merchant</label>
+          <input
+            type="text"
+            id="merchant"
+            name="merchant"
+            placeholder="e.g. Woolworths"
+            value="{{ request.args.get('merchant', '') }}"
+          >
+        </div>
+
+        <div class="filter-group">
+          <label for="category">Category</label>
+          <select id="category" name="category">
+            <option value="">All categories</option>
+            <option value="Groceries" {% if request.args.get('category') == 'Groceries' %}selected{% endif %}>Groceries</option>
+            <option value="Food" {% if request.args.get('category') == 'Food' %}selected{% endif %}>Food</option>
+            <option value="Transport" {% if request.args.get('category') == 'Transport' %}selected{% endif %}>Transport</option>
+            <option value="Bills" {% if request.args.get('category') == 'Bills' %}selected{% endif %}>Bills</option>
+            <option value="Shopping" {% if request.args.get('category') == 'Shopping' %}selected{% endif %}>Shopping</option>
+            <option value="Health" {% if request.args.get('category') == 'Health' %}selected{% endif %}>Health</option>
+            <option value="Other" {% if request.args.get('category') == 'Other' %}selected{% endif %}>Other</option>
+          </select>
+        </div>
+
+        <div class="filter-actions">
+          <button type="submit" class="filter-btn">Filter</button>
+          <a href="{{ url_for('receipts.archive') }}" class="clear-filter-btn">Clear</a>
+        </div>
+      </form>
+    </div>
+
+    <div class="archive-table-card">
+      <div class="table-top">
+        <div>
+          <h2>Saved Receipts</h2>
+          <p>{{ receipts|length }} receipt{{ '' if receipts|length == 1 else 's' }} found</p>
+        </div>
+      </div>
+
+      <div class="archive-table-wrapper">
+        <table class="archive-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Merchant</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% if receipts %}
+              {% for receipt in receipts %}
+              <tr>
+                <td>{{ receipt.expense_date }}</td>
+                <td>
+                  <strong>{{ receipt.merchant }}</strong>
+                </td>
+                <td>
+                  <span class="archive-category-pill">{{ receipt.category }}</span>
+                </td>
+                <td class="amount-cell">
+                  ${{ "%.2f"|format(receipt.amount) }}
+                </td>
+                <td>
+                  <a
+                    href="{{ url_for('receipts.receipt_detail', receipt_id=receipt.id) }}"
+                    class="view-receipt-link"
+                  >
+                    View
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="5" class="archive-empty">
+                  No receipts found.
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}
