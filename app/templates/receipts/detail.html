@@ -7,13 +7,13 @@
 
     <div class="receipt-detail-header">
       <div>
-        <p class="page-label">Receipt Record</p>
-        <h1>Receipt Detail</h1>
-        <p>Review the saved expense information for this receipt.</p>
+        <p class="page-label">Expense Record</p>
+        <h1>Expense Detail</h1>
+        <p>Review the saved expense information.</p>
       </div>
 
       <a href="{{ url_for('receipts.edit_receipt', receipt_id=receipt.id) }}" class="edit-receipt-btn">
-        Edit Receipt
+        Edit Expense
       </a>
     </div>
 
@@ -57,7 +57,7 @@
       </div>
 
       <div class="receipt-preview-card">
-        <h2>Receipt Image</h2>
+        <h2>Expense Receipt</h2>
 
         {% if receipt.image_filename %}
           <div class="receipt-image-preview">

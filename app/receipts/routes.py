@@ -2,7 +2,7 @@ import os
 from datetime import datetime, date
 from uuid import uuid4
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 
@@ -30,6 +30,9 @@ def index():
         category = request.form.get("category", "").strip()
         expense_date_raw = request.form.get("expense_date", "").strip()
         notes = request.form.get("notes", "").strip()
+        frequency = request.form.get("frequency", "one-time").strip()
+        frequency_interval = request.form.get("frequency_interval", "").strip()
+        frequency_details = request.form.get("frequency_details", "").strip()
         file = request.files.get("receipt_image")
 
         errors = []
@@ -77,6 +80,7 @@ def index():
             # Re-render the page with the form visible
             q = request.args.get("q", "").strip()
             category_filter = request.args.get("category", "").strip()
+            frequency_filter = request.args.get("frequency", "").strip()
             query = Receipt.query.filter_by(user_id=current_user.id)
             
             if q:
@@ -85,6 +89,9 @@ def index():
             
             if category_filter:
                 query = query.filter(Receipt.category == category_filter)
+            
+            if frequency_filter:
+                query = query.filter(Receipt.frequency_type == frequency_filter)
             
             expenses = query.order_by(Receipt.expense_date.desc(), Receipt.created_at.desc()).all()
             
@@ -103,7 +110,8 @@ def index():
                 expenses=expenses,
                 categories=categories,
                 selected_category=category_filter,
-                search_query=q
+                search_query=q,
+                selected_frequency=frequency_filter
             )
 
         # Create and save the receipt
@@ -114,6 +122,9 @@ def index():
             category=category,
             expense_date=expense_date,
             notes=notes if notes else None,
+            frequency_type=frequency,
+            frequency_interval=frequency_interval if frequency == "recurring" else None,
+            frequency_details=frequency_details if frequency == "recurring" else None,
             image_filename=image_filename
         )
 
@@ -130,6 +141,7 @@ def index():
     # Handle GET requests (display the page with list and form)
     q = request.args.get("q", "").strip()
     category_filter = request.args.get("category", "").strip()
+    frequency_filter = request.args.get("frequency", "").strip()
 
     query = Receipt.query.filter_by(user_id=current_user.id)
 
@@ -139,6 +151,9 @@ def index():
 
     if category_filter:
         query = query.filter(Receipt.category == category_filter)
+
+    if frequency_filter:
+        query = query.filter(Receipt.frequency_type == frequency_filter)
 
     expenses = query.order_by(Receipt.expense_date.desc(), Receipt.created_at.desc()).all()
 
@@ -157,7 +172,8 @@ def index():
         expenses=expenses,
         categories=categories,
         selected_category=category_filter,
-        search_query=q
+        search_query=q,
+        selected_frequency=frequency_filter
     )
 
 
@@ -203,6 +219,9 @@ def edit_receipt(receipt_id):
         category = request.form.get("category", "").strip()
         expense_date_raw = request.form.get("expense_date", "").strip()
         notes = request.form.get("notes", "").strip()
+        frequency = request.form.get("frequency", "one-time").strip()
+        frequency_interval = request.form.get("frequency_interval", "").strip()
+        frequency_details = request.form.get("frequency_details", "").strip()
 
         errors = []
 
@@ -243,6 +262,9 @@ def edit_receipt(receipt_id):
         receipt.category = category
         receipt.expense_date = expense_date
         receipt.notes = notes if notes else None
+        receipt.frequency_type = frequency
+        receipt.frequency_interval = frequency_interval if frequency == "recurring" else None
+        receipt.frequency_details = frequency_details if frequency == "recurring" else None
 
         db.session.commit()
 
@@ -254,3 +276,25 @@ def edit_receipt(receipt_id):
         page_title="Edit Receipt",
         receipt=receipt
     )
+
+
+@receipts_bp.route("/<int:receipt_id>/delete", methods=["POST"])
+@login_required
+def delete_receipt(receipt_id):
+    """Delete an expense record."""
+    receipt = Receipt.query.filter_by(id=receipt_id, user_id=current_user.id).first_or_404()
+    
+    # Delete receipt image if it exists
+    if receipt.image_filename:
+        image_path = os.path.join(current_app.config["RECEIPT_UPLOAD_FOLDER"], receipt.image_filename)
+        if os.path.exists(image_path):
+            try:
+                os.remove(image_path)
+            except Exception as e:
+                current_app.logger.error(f"Error deleting image file: {e}")
+    
+    db.session.delete(receipt)
+    db.session.commit()
+    
+    flash("Expense deleted successfully.", "success")
+    return redirect(url_for("receipts.index"))

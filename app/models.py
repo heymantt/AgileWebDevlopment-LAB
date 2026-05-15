@@ -71,6 +71,11 @@ class Receipt(db.Model):
     expense_date = db.Column(db.Date, nullable=False)
     notes = db.Column(db.Text, nullable=True)
 
+    # Frequency fields for recurring expenses
+    frequency_type = db.Column(db.String(20), default="one-time", nullable=False)  # "one-time" or "recurring"
+    frequency_interval = db.Column(db.String(20), nullable=True)  # "daily", "weekly", "monthly"
+    frequency_details = db.Column(db.String(255), nullable=True)  # "Monday", "15th", etc.
+
     image_filename = db.Column(db.String(255), nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)

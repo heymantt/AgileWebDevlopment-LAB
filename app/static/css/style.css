@@ -1899,6 +1899,120 @@ footer {
 .expenses-empty {
     padding: 40px;
     text-align: center;
+    color: #6c7c77;
+}
+
+.frequency-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #f0e4ff;
+    color: #7c3aed;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.frequency-badge.one-time {
+    background: #fee4e4;
+    color: #ef4444;
+}
+
+.actions-cell {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #e4f6ef;
+    border: 1px solid #c4e8e0;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: 0.2s ease;
+    font-weight: 600;
+}
+
+.action-btn:hover {
+    background: #16805f;
+    color: #ffffff;
+    border-color: #16805f;
+    transform: translateY(-1px);
+}
+
+.action-btn.edit-btn:hover {
+    background: #3b82f6;
+    border-color: #3b82f6;
+}
+
+.action-btn.delete-btn {
+    background: #fee4e4;
+    border-color: #fecaca;
+}
+
+.action-btn.delete-btn:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+}
+
+.expenses-empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 28px;
+    background: #ffffff;
+    border: 1px solid rgba(22, 128, 95, 0.12);
+    border-radius: 24px;
+    box-shadow: 0 14px 40px rgba(18, 55, 47, 0.10);
+    min-height: 400px;
+}
+
+.empty-state-content {
+    text-align: center;
+    max-width: 400px;
+}
+
+.empty-state-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    display: block;
+}
+
+.empty-state-content h2 {
+    color: #12372f;
+    font-size: 24px;
+    font-weight: 800;
+    margin: 0 0 12px;
+}
+
+.empty-state-content p {
+    color: #6c7c77;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.no-results-message {
+    padding: 40px;
+    text-align: center;
+    color: #6c7c77;
+    background: #fbfefd;
+    border-radius: 12px;
+    border: 1px solid #edf3f1;
+}
+
+.no-results-message p {
+    margin: 0;
+    font-size: 14px;
+}
+    text-align: center;
     color: #7a8a85;
     font-weight: 700;
     font-size: 15px;
