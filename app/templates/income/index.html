@@ -133,7 +133,8 @@
       </div>
     </div>
 
-    <!-- Income Records Section -->
+    <!-- Income Records Section - Only show when incomes exist -->
+    {% if incomes %}
     <div class="income-records-section">
       <div class="income-records-header">
         <div>
@@ -142,23 +143,24 @@
         </div>
       </div>
 
-      {% if incomes %}
       <div class="income-table-wrapper">
         <table class="income-table">
           <thead>
             <tr>
-              <th>Start Date</th>
               <th>Source</th>
               <th>Category</th>
-              <th>Amount</th>
               <th>Frequency</th>
+              <th>Amount</th>
+              <th>Monthly Equiv.</th>
+              <th>Start Date</th>
+              <th>Next Expected</th>
               <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {% for income in incomes %}
             <tr>
-              <td>{{ income.start_date.strftime('%d/%m/%Y') if income.start_date else income.income_date.strftime('%d/%m/%Y') }}</td>
               <td>
                 <strong>{{ income.source }}</strong>
               </td>
@@ -166,9 +168,6 @@
                 <span class="income-category-pill">
                   {{ income.category or income.income_type or "General" }}
                 </span>
-              </td>
-              <td class="income-amount-cell">
-                ${{ "%.2f"|format(income.amount) }}
               </td>
               <td>
                 <span class="income-frequency-badge {% if income.frequency == 'one-time' %}one-time{% else %}recurring{% endif %}">
@@ -179,30 +178,118 @@
                   {% endif %}
                 </span>
               </td>
+              <td class="income-amount-cell">
+                ${{ "%.2f"|format(income.amount) }}
+              </td>
+              <td class="income-amount-cell">
+                {# Calculate monthly equivalent based on frequency #}
+                {% if income.frequency == 'one-time' %}
+                  -
+                {% elif income.frequency == 'daily' %}
+                  ${{ "%.2f"|format(income.amount * 30) }}
+                {% elif income.frequency == 'weekly' %}
+                  ${{ "%.2f"|format(income.amount * 4.33) }}
+                {% elif income.frequency == 'monthly' %}
+                  ${{ "%.2f"|format(income.amount) }}
+                {% elif income.frequency == 'yearly' %}
+                  ${{ "%.2f"|format(income.amount / 12) }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
               <td>
-                {% if income.end_date %}
-                  {% if income.end_date < income.start_date %}
-                    <span class="income-status-badge expired">Expired</span>
+                {{ income.start_date.strftime('%d/%m/%Y') if income.start_date else income.income_date.strftime('%d/%m/%Y') }}
+              </td>
+              <td>
+                {# Calculate next expected date #}
+                {% if income.frequency == 'one-time' %}
+                  N/A
+                {% elif income.frequency == 'daily' %}
+                  {% set today = now.date() %}
+                  {% if income.start_date and income.start_date <= today %}
+                    {{ (today + timedelta(days=1)).strftime('%d/%m/%Y') }}
                   {% else %}
-                    <span class="income-status-badge active">Active</span>
+                    {{ income.start_date.strftime('%d/%m/%Y') }}
+                  {% endif %}
+                {% elif income.frequency == 'weekly' %}
+                  {% set today = now.date() %}
+                  {% set start = income.start_date %}
+                  {% if start and start <= today %}
+                    {% set days_since = (today - start).days %}
+                    {% set weeks_passed = days_since // 7 %}
+                    {% set next_date = start + timedelta(weeks=weeks_passed + 1) %}
+                    {{ next_date.strftime('%d/%m/%Y') }}
+                  {% else %}
+                    {{ start.strftime('%d/%m/%Y') }}
+                  {% endif %}
+                {% elif income.frequency == 'monthly' %}
+                  {% set today = now.date() %}
+                  {% set start = income.start_date %}
+                  {% set day_of_month = start.day %}
+                  {% if today.month == 12 %}
+                    {% set next_month = 1 %}
+                    {% set next_year = today.year + 1 %}
+                  {% else %}
+                    {% set next_month = today.month + 1 %}
+                    {% set next_year = today.year %}
+                  {% endif %}
+                  {# Handle day overflow for months with fewer days #}
+                  {% set days_in_next = [31, 29 if next_year % 4 == 0 else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][next_month - 1] %}
+                  {% set day = [day_of_month, days_in_next]|min %}
+                  {{ next_year }}-{{ "%02d"|format(next_month) }}-{{ "%02d"|format(day) }}
+                {% elif income.frequency == 'yearly' %}
+                  {% set today = now.date() %}
+                  {% set start = income.start_date %}
+                  {% if today.year > start.year or (today.year == start.year and today.month > start.month) or (today.year == start.year and today.month == start.month and today.day > start.day) %}
+                    {{ start.replace(year=today.year + 1).strftime('%d/%m/%Y') }}
+                  {% else %}
+                    {{ start.replace(year=today.year).strftime('%d/%m/%Y') }}
                   {% endif %}
                 {% else %}
-                  <span class="income-status-badge permanent">Permanent</span>
+                  -
                 {% endif %}
+              </td>
+              <td>
+                {% set is_active = income.end_date is none or income.end_date >= now.date() %}
+                {% if income.frequency == 'one-time' %}
+                  <span class="income-status-badge completed">Recorded</span>
+                {% elif is_active %}
+                  <span class="income-status-badge active">Active</span>
+                {% else %}
+                  <span class="income-status-badge expired">Inactive</span>
+                {% endif %}
+              </td>
+              <td class="income-actions-cell">
+                <a 
+                  href="{{ url_for('income.edit_income', income_id=income.id) }}" 
+                  class="action-btn edit-btn" 
+                  title="Edit income"
+                >
+                  ✎
+                </a>
+                <button 
+                  type="button" 
+                  class="action-btn delete-btn" 
+                  data-income-id="{{ income.id }}" 
+                  title="Delete income"
+                >
+                  🗑
+                </button>
               </td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
-      {% else %}
-      <div class="income-empty-state">
-        <div class="empty-state-icon">💰</div>
-        <h3>No income records yet</h3>
-        <p>Start tracking your income sources by clicking the "Add Income" button above.</p>
-      </div>
-      {% endif %}
     </div>
+    {% else %}
+    <!-- Empty State - only shown when no incomes exist -->
+    <div class="income-empty-state">
+      <div class="empty-state-icon">💰</div>
+      <h3>No income records yet</h3>
+      <p>Start tracking your income sources by clicking the "Add Income" button above.</p>
+    </div>
+    {% endif %}
 
   </div>
 </section>
@@ -776,6 +863,33 @@
         alert('Please enter a start date.');
         return;
       }
+    });
+
+    // Delete income functionality
+    const deleteButtons = document.querySelectorAll('.delete-btn');
+    deleteButtons.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const incomeId = this.dataset.incomeId;
+        if (confirm('Are you sure you want to delete this income entry? This action cannot be undone.')) {
+          // Get CSRF token from meta tag
+          const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+          
+          // Create and submit a form with CSRF token
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = `/income/${incomeId}/delete`;
+          
+          // Add CSRF token
+          const csrfInput = document.createElement('input');
+          csrfInput.type = 'hidden';
+          csrfInput.name = 'csrf_token';
+          csrfInput.value = csrfToken;
+          form.appendChild(csrfInput);
+          
+          document.body.appendChild(form);
+          form.submit();
+        }
+      });
     });
   });
 </script>
