@@ -1384,109 +1384,157 @@ footer {
     line-height: 1.5;
 }
 
-/* Add Expense Card */
-.add-expense-card {
-    background: #ffffff;
-    border-radius: 24px;
-    padding: 28px;
-    border: 1px solid rgba(22, 128, 95, 0.12);
-    box-shadow: 0 12px 32px rgba(18, 55, 47, 0.10);
-    margin-bottom: 28px;
+/* Add Expense Button */
+.add-expense-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    background: linear-gradient(135deg, #16805f 0%, #12372f 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.25s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    box-shadow: 0 4px 12px rgba(22, 128, 95, 0.25);
 }
 
-.add-expense-header {
+.add-expense-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(22, 128, 95, 0.35);
+    background: linear-gradient(135deg, #12372f 0%, #16805f 100%);
+}
+
+.add-expense-btn .btn-icon {
+    font-size: 18px;
+    font-weight: 900;
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(18, 55, 47, 0.25);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(18, 55, 47, 0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #f1faf6;
 }
 
-.add-expense-header h2 {
+.modal-header h2 {
     margin: 0;
     color: #12372f;
     font-size: 22px;
     font-weight: 800;
 }
 
-.toggle-form-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    border: 2px solid #16805f;
-    background: #e4f6ef;
-    color: #16805f;
-    font-size: 20px;
-    font-weight: 800;
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #6c7c77;
     cursor: pointer;
-    transition: 0.25s ease;
+    transition: 0.2s ease;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
+    border-radius: 8px;
 }
 
-.toggle-form-btn:hover {
-    background: #16805f;
-    color: #ffffff;
-    transform: scale(1.05);
+.modal-close:hover {
+    background: #f1faf6;
+    color: #12372f;
 }
 
-.toggle-form-btn.active {
-    background: #16805f;
-    color: #ffffff;
-}
-
-.add-expense-form {
+/* Modal Form Styles */
+.modal-form {
     display: flex;
     flex-direction: column;
-    gap: 22px;
-}
-
-.add-expense-form.hidden {
-    display: none;
-}
-
-/* Form Section Titles */
-.form-section-title {
-    margin-bottom: 16px;
-}
-
-.form-section-title h3 {
-    margin: 0;
-    color: #12372f;
-    font-size: 18px;
-    font-weight: 800;
-}
-
-.form-section-title p {
-    margin: 6px 0 0;
-    color: #6c7c77;
-    font-size: 13px;
-}
-
-/* Form Row and Groups */
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
     gap: 20px;
 }
 
-.form-group {
+.modal-form-group {
     display: flex;
     flex-direction: column;
 }
 
-.form-group label {
-    margin-bottom: 8px;
+.modal-form-group label {
+    margin-bottom: 10px;
     color: #294940;
     font-size: 14px;
     font-weight: 700;
     display: block;
 }
 
-.form-group input,
-.form-group select,
-.form-group textarea {
+.modal-form-group input,
+.modal-form-group select,
+.modal-form-group textarea {
     width: 100%;
     padding: 14px 15px;
     border: 1.5px solid #d6e7e1;
@@ -1499,78 +1547,131 @@ footer {
     font-family: inherit;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
+.modal-form-group input:focus,
+.modal-form-group select:focus,
+.modal-form-group textarea:focus {
     border-color: #16805f;
     background: #ffffff;
     box-shadow: 0 0 0 4px rgba(22, 128, 95, 0.15);
 }
 
-.form-group textarea {
+.modal-form-group textarea {
     resize: vertical;
-    min-height: 100px;
+    min-height: 70px;
 }
 
-.receipt-upload-box {
+.modal-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+/* Frequency Options */
+.frequency-options {
+    display: flex;
+    gap: 16px;
+}
+
+.frequency-label {
     display: flex;
     align-items: center;
-    gap: 20px;
-    padding: 28px;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.frequency-label input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #16805f;
+}
+
+.frequency-label span {
+    color: #334f48;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* File Upload Box */
+.file-upload-box {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px;
     border: 2px dashed #90cdb9;
-    border-radius: 16px;
+    border-radius: 14px;
     background: #f8fffc;
     cursor: pointer;
     transition: 0.25s ease;
-    margin: 12px 0;
 }
 
-.receipt-upload-box:hover {
+.file-upload-box:hover {
     background: #effaf5;
     border-color: #16805f;
     transform: translateY(-2px);
 }
 
-.receipt-upload-icon {
-    width: 64px;
-    height: 64px;
+.upload-icon {
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     background: #e4f6ef;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 32px;
+    font-size: 24px;
     flex-shrink: 0;
 }
 
-.receipt-upload-box strong {
-    display: block;
-    color: #12372f;
-    font-size: 16px;
-    margin-bottom: 4px;
-    font-weight: 800;
+.upload-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
-.receipt-upload-box span {
+.upload-text strong {
     display: block;
+    color: #12372f;
+    font-size: 15px;
+    font-weight: 800;
+    margin-bottom: 2px;
+}
+
+.upload-text p {
+    margin: 0;
     color: #6c7c77;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
 }
 
-.receipt-upload-box input[type="file"] {
+.file-name {
+    color: #16805f;
+    font-size: 13px;
+    font-weight: 700;
+    word-break: break-word;
+}
+
+/* Field Error Messages */
+.field-error {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 6px;
     display: none;
+    font-weight: 600;
 }
 
-/* Form Actions */
-.form-actions {
+/* Modal Form Actions */
+.modal-form-actions {
     display: flex;
-    gap: 14px;
-    margin-top: 8px;
+    gap: 12px;
+    margin-top: 12px;
+    padding-top: 20px;
+    border-top: 2px solid #f1faf6;
 }
 
-.submit-btn,
-.cancel-btn {
+.btn-primary,
+.btn-secondary {
     padding: 14px 24px;
     border: none;
     border-radius: 12px;
@@ -1579,26 +1680,27 @@ footer {
     cursor: pointer;
     transition: 0.25s ease;
     flex: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
-.submit-btn {
-    background: #16805f;
+.btn-primary {
+    background: linear-gradient(135deg, #16805f 0%, #12372f 100%);
     color: #ffffff;
 }
 
-.submit-btn:hover {
-    background: #12372f;
+.btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(22, 128, 95, 0.3);
 }
 
-.cancel-btn {
+.btn-secondary {
     background: #f1faf6;
     color: #12372f;
     border: 1.5px solid #d6e7e1;
 }
 
-.cancel-btn:hover {
+.btn-secondary:hover {
     background: #eef7f3;
     border-color: #16805f;
 }
@@ -1806,13 +1908,20 @@ footer {
 @media (max-width: 900px) {
     .expenses-header {
         flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
     }
 
     .expenses-header h1 {
         font-size: 36px;
     }
 
-    .form-row {
+    .add-expense-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .modal-form-row {
         grid-template-columns: 1fr;
     }
 
@@ -1835,16 +1944,57 @@ footer {
         padding: 32px 16px;
     }
 
-    .add-expense-card {
-        padding: 20px;
-    }
-
     .expenses-header h1 {
         font-size: 28px;
     }
 
     .expenses-header p:first-child {
         font-size: 11px;
+    }
+
+    .add-expense-btn {
+        font-size: 13px;
+        padding: 12px 20px;
+    }
+
+    .modal-content {
+        width: 95%;
+        padding: 24px;
+        border-radius: 16px;
+    }
+
+    .modal-form-group input,
+    .modal-form-group select,
+    .modal-form-group textarea {
+        padding: 12px 14px;
+        font-size: 16px;
+    }
+
+    .file-upload-box {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+        gap: 12px;
+    }
+
+    .upload-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+
+    .upload-text strong {
+        font-size: 14px;
+    }
+
+    .upload-text p {
+        font-size: 11px;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        padding: 12px 16px;
+        font-size: 13px;
     }
 
     .expenses-table-card {
@@ -1857,24 +2007,13 @@ footer {
         gap: 12px;
     }
 
-    .form-actions {
+    .modal-form-actions {
         flex-direction: column;
     }
 
-    .submit-btn,
-    .cancel-btn {
+    .btn-primary,
+    .btn-secondary {
         width: 100%;
-    }
-
-    .receipt-upload-box {
-        gap: 16px;
-        padding: 20px;
-    }
-
-    .receipt-upload-icon {
-        width: 54px;
-        height: 54px;
-        font-size: 28px;
     }
 }
 
