@@ -90,14 +90,38 @@
             <label for="frequency">Frequency</label>
             <div class="frequency-options">
               <label class="frequency-label">
-                <input type="radio" name="frequency" value="one-time" checked>
+                <input type="radio" name="frequency" value="one-time" checked id="freq-onetime">
                 <span>One-time</span>
               </label>
               <label class="frequency-label">
-                <input type="radio" name="frequency" value="recurring">
+                <input type="radio" name="frequency" value="recurring" id="freq-recurring">
                 <span>Recurring</span>
               </label>
             </div>
+          </div>
+
+          <!-- Frequency Details (for recurring expenses) -->
+          <div id="frequency-details-group" class="modal-form-group" style="display: none;">
+            <label for="frequency_interval">Recurrence Type</label>
+            <select id="frequency_interval" name="frequency_interval">
+              <option value="">Select recurrence</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </div>
+
+          <div id="frequency-when-group" class="modal-form-group" style="display: none;">
+            <label for="frequency_details">When</label>
+            <input 
+              type="text" 
+              id="frequency_details" 
+              name="frequency_details" 
+              placeholder="e.g. Monday, 15th, Every day"
+            >
+            <small style="color: #6c7c77; margin-top: 4px; display: block;">
+              For weekly: Day name (e.g., Monday), For monthly: Day (e.g., 15th), For daily: leave blank
+            </small>
           </div>
 
           <!-- Description / Notes -->
@@ -145,7 +169,8 @@
     <!-- Modal Backdrop -->
     <div id="modal-backdrop" class="modal-backdrop"></div>
 
-    <!-- Filter Section -->
+    <!-- Filter Section - Show if expenses exist or a filter is applied -->
+    {% if expenses or search_query or selected_category or selected_frequency %}
     <div class="expenses-filter-card">
       <form method="GET" class="expenses-filter-form">
         <div class="filter-group">
@@ -169,22 +194,38 @@
           </select>
         </div>
 
+        <div class="filter-group">
+          <label for="filter-frequency">Frequency</label>
+          <select id="filter-frequency" name="frequency">
+            <option value="">All types</option>
+            <option value="one-time" {% if selected_frequency == "one-time" %}selected{% endif %}>One-time</option>
+            <option value="recurring" {% if selected_frequency == "recurring" %}selected{% endif %}>Recurring</option>
+          </select>
+        </div>
+
         <div class="filter-actions">
           <button type="submit" class="filter-btn">Filter</button>
           <a href="{{ url_for('receipts.index') }}" class="clear-filter-btn">Clear</a>
         </div>
       </form>
     </div>
+    {% endif %}
 
-    <!-- Expenses List Section -->
+    <!-- Expenses List Section - Show if expenses exist or a filter is applied -->
+    {% if expenses or search_query or selected_category or selected_frequency %}
     <div class="expenses-table-card">
       <div class="table-top">
         <div>
           <h2>Your Expenses</h2>
-          <p>{{ expenses|length }} expense{{ '' if expenses|length == 1 else 's' }} found</p>
+          {% if expenses %}
+            <p>{{ expenses|length }} expense{{ '' if expenses|length == 1 else 's' }} found</p>
+          {% else %}
+            <p>No expenses found</p>
+          {% endif %}
         </div>
       </div>
 
+      {% if expenses %}
       <div class="expenses-table-wrapper">
         <table class="expenses-table">
           <thead>
@@ -193,45 +234,76 @@
               <th>Merchant</th>
               <th>Category</th>
               <th>Amount</th>
-              <th>Action</th>
+              <th>Frequency</th>
+              <th>Actions</th>
             </tr>
           </thead>
 
           <tbody>
-            {% if expenses %}
-              {% for expense in expenses %}
-              <tr>
-                <td>{{ expense.expense_date }}</td>
-                <td>
-                  <strong>{{ expense.merchant }}</strong>
-                </td>
-                <td>
-                  <span class="category-pill">{{ expense.category }}</span>
-                </td>
-                <td class="amount-cell">
-                  ${{ "%.2f"|format(expense.amount) }}
-                </td>
-                <td>
-                  <a
-                    href="{{ url_for('receipts.receipt_detail', receipt_id=expense.id) }}"
-                    class="view-expense-link"
-                  >
-                    View
-                  </a>
-                </td>
-              </tr>
-              {% endfor %}
-            {% else %}
-              <tr>
-                <td colspan="5" class="expenses-empty">
-                  No expenses found. Start by adding your first expense above.
-                </td>
-              </tr>
-            {% endif %}
+            {% for expense in expenses %}
+            <tr>
+              <td>{{ expense.expense_date.strftime('%d/%m/%Y') }}</td>
+              <td>
+                <strong>{{ expense.merchant }}</strong>
+              </td>
+              <td>
+                <span class="category-pill">{{ expense.category }}</span>
+              </td>
+              <td class="amount-cell">
+                ${{ "%.2f"|format(expense.amount) }}
+              </td>
+              <td>
+                {% if expense.frequency_type == 'recurring' %}
+                  <span class="frequency-badge">{{ expense.frequency_interval|capitalize }}</span>
+                {% else %}
+                  <span class="frequency-badge one-time">One-time</span>
+                {% endif %}
+              </td>
+              <td class="actions-cell">
+                <a
+                  href="{{ url_for('receipts.receipt_detail', receipt_id=expense.id) }}"
+                  class="action-btn view-btn"
+                  title="View details"
+                >
+                  👁
+                </a>
+                <a
+                  href="{{ url_for('receipts.edit_receipt', receipt_id=expense.id) }}"
+                  class="action-btn edit-btn"
+                  title="Edit expense"
+                >
+                  ✎
+                </a>
+                <button
+                  type="button"
+                  class="action-btn delete-btn"
+                  data-receipt-id="{{ expense.id }}"
+                  title="Delete expense"
+                >
+                  🗑
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
           </tbody>
         </table>
       </div>
+      {% else %}
+      <div class="no-results-message">
+        <p>Try adjusting your filters or search term to find expenses</p>
+      </div>
+      {% endif %}
     </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="expenses-empty-state">
+      <div class="empty-state-content">
+        <div class="empty-state-icon">📋</div>
+        <h2>No expenses yet</h2>
+        <p>You haven't added any expenses. Click the "Add Expense" button above to get started tracking your spending!</p>
+      </div>
+    </div>
+    {% endif %}
 
   </div>
 </section>
@@ -250,6 +322,12 @@
     const fileName = document.getElementById('file-name');
     const uploadContent = fileUploadBox.querySelector('.upload-content');
 
+    // Frequency elements
+    const freqOnetimeRadio = document.getElementById('freq-onetime');
+    const freqRecurringRadio = document.getElementById('freq-recurring');
+    const frequencyDetailsGroup = document.getElementById('frequency-details-group');
+    const frequencyWhenGroup = document.getElementById('frequency-when-group');
+
     // Open modal
     openBtn.addEventListener('click', function() {
       modal.classList.add('active');
@@ -266,12 +344,28 @@
       resetFormErrors();
       fileName.style.display = 'none';
       uploadContent.style.display = 'flex';
+      frequencyDetailsGroup.style.display = 'none';
+      frequencyWhenGroup.style.display = 'none';
     }
 
     // Close modal event listeners
     closeBtn.addEventListener('click', closeModal);
     cancelBtn.addEventListener('click', closeModal);
     backdrop.addEventListener('click', closeModal);
+
+    // Frequency toggle
+    function updateFrequencyFields() {
+      if (freqRecurringRadio.checked) {
+        frequencyDetailsGroup.style.display = 'block';
+        frequencyWhenGroup.style.display = 'block';
+      } else {
+        frequencyDetailsGroup.style.display = 'none';
+        frequencyWhenGroup.style.display = 'none';
+      }
+    }
+
+    freqOnetimeRadio.addEventListener('change', updateFrequencyFields);
+    freqRecurringRadio.addEventListener('change', updateFrequencyFields);
 
     // File upload handling
     fileUploadBox.addEventListener('click', function() {
@@ -347,6 +441,30 @@
         el.style.display = 'none';
       });
     }
+
+    // Delete button handlers
+    const deleteButtons = document.querySelectorAll('.delete-btn');
+    deleteButtons.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const receiptId = this.dataset.receiptId;
+        if (confirm('Are you sure you want to delete this expense? This action cannot be undone.')) {
+          // Create a form and submit it
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = `/receipts/${receiptId}/delete`;
+          
+          const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+          const csrfInput = document.createElement('input');
+          csrfInput.type = 'hidden';
+          csrfInput.name = 'csrf_token';
+          csrfInput.value = csrfToken;
+          
+          form.appendChild(csrfInput);
+          document.body.appendChild(form);
+          form.submit();
+        }
+      });
+    });
 
     // Close modal on Escape key
     document.addEventListener('keydown', function(e) {
