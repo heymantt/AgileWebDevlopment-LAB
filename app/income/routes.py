@@ -21,9 +21,11 @@ def income_home():
     if request.method == "POST":
         source = request.form.get("source", "").strip()
         amount_raw = request.form.get("amount", "").strip()
-        income_date_raw = request.form.get("income_date", "").strip()
-        income_type = request.form.get("income_type", "").strip()
-        notes = request.form.get("notes", "").strip()
+        start_date_raw = request.form.get("start_date", "").strip()
+        end_date_raw = request.form.get("end_date", "").strip()
+        frequency = request.form.get("frequency", "one-time").strip()
+        category = request.form.get("category", "").strip()
+        description = request.form.get("description", "").strip()
 
         errors = []
 
@@ -31,10 +33,12 @@ def income_home():
             errors.append("Source is required.")
         if not amount_raw:
             errors.append("Amount is required.")
-        if not income_date_raw:
-            errors.append("Date is required.")
-        if not income_type:
-            errors.append("Income type is required.")
+        if not start_date_raw:
+            errors.append("Start Date is required.")
+        if not frequency:
+            errors.append("Frequency is required.")
+        if not category:
+            errors.append("Category is required.")
 
         try:
             amount = float(amount_raw)
@@ -45,22 +49,34 @@ def income_home():
             amount = 0
 
         try:
-            income_date = datetime.strptime(income_date_raw, "%Y-%m-%d").date()
+            start_date = datetime.strptime(start_date_raw, "%Y-%m-%d").date()
         except ValueError:
-            errors.append("Date must be valid.")
-            income_date = date.today()
+            errors.append("Start Date must be valid.")
+            start_date = date.today()
+
+        end_date = None
+        if end_date_raw:
+            try:
+                end_date = datetime.strptime(end_date_raw, "%Y-%m-%d").date()
+            except ValueError:
+                errors.append("End Date must be valid.")
 
         if errors:
             for error in errors:
                 flash(error, "error")
         else:
+            # Use start_date as income_date for backward compatibility
             entry = Income(
                 user_id=current_user.id,
                 source=source,
                 amount=amount,
-                income_date=income_date,
-                income_type=income_type,
-                notes=notes if notes else None
+                income_date=start_date,  # Use start_date as income_date
+                income_type=frequency,  # Store frequency in income_type for backward compatibility
+                notes=description if description else None,
+                frequency=frequency,
+                category=category,
+                start_date=start_date,
+                end_date=end_date
             )
             db.session.add(entry)
             db.session.commit()
@@ -70,14 +86,14 @@ def income_home():
     incomes = (
         Income.query
         .filter_by(user_id=current_user.id)
-        .order_by(Income.income_date.desc(), Income.created_at.desc())
+        .order_by(Income.start_date.desc(), Income.created_at.desc())
         .all()
     )
 
     today = date.today()
     monthly_total = sum(
         item.amount for item in incomes
-        if item.income_date.year == today.year and item.income_date.month == today.month
+        if item.start_date and item.start_date.year == today.year and item.start_date.month == today.month
     )
 
     return render_template(
