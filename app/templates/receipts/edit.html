@@ -94,7 +94,7 @@
         </div>
 
         <!-- Frequency Details (for recurring) -->
-        <div id="frequency-details-group" class="form-group" style="display: {% if receipt.frequency_type == 'recurring' %}block{% else %}none{% endif %};">
+        <div id="frequency-details-group" class="form-group frequency-conditional">
           <label for="frequency_interval">Recurrence Type</label>
           <select id="frequency_interval" name="frequency_interval">
             <option value="">Select recurrence</option>
@@ -104,7 +104,7 @@
           </select>
         </div>
 
-        <div id="frequency-when-group" class="form-group" style="display: {% if receipt.frequency_type == 'recurring' %}block{% else %}none{% endif %};">
+        <div id="frequency-when-group" class="form-group frequency-conditional">
           <label for="frequency_details">When</label>
           <input 
             type="text" 
@@ -113,7 +113,7 @@
             value="{{ receipt.frequency_details or '' }}"
             placeholder="e.g. Monday, 15th"
           >
-          <small style="color: #6c7c77; margin-top: 4px; display: block;">
+          <small class="frequency-help-text">
             For weekly: Day name (e.g., Monday), For monthly: Day (e.g., 15th)
           </small>
         </div>
@@ -190,6 +190,16 @@
   background: #16805f;
   color: #ffffff;
   border-color: #16805f;
+}
+
+.frequency-conditional {
+  display: none;
+}
+
+.frequency-help-text {
+  color: #6c7c77;
+  margin-top: 4px;
+  display: block;
 }
 
 .form-card {
@@ -329,6 +339,9 @@
         frequencyWhenGroup.style.display = 'none';
       }
     }
+
+    // Set initial state based on radio button
+    updateFrequencyFields();
 
     freqOnetimeRadio.addEventListener('change', updateFrequencyFields);
     freqRecurringRadio.addEventListener('change', updateFrequencyFields);

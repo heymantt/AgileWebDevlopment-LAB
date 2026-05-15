@@ -2012,11 +2012,6 @@ footer {
     margin: 0;
     font-size: 14px;
 }
-    text-align: center;
-    color: #7a8a85;
-    font-weight: 700;
-    font-size: 15px;
-}
 
 /* Responsive Design */
 @media (max-width: 900px) {
