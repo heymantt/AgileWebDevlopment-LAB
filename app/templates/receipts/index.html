@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="expenses-page">
+  <div class="expenses-container">
+
+    <!-- Header Section -->
+    <div class="expenses-header">
+      <div>
+        <p class="page-label">Expense Tracking</p>
+        <h1>Expenses</h1>
+        <p>Manage all your expenses in one place. Add new expenses and track your spending.</p>
+      </div>
+    </div>
+
+    <!-- Upload/Add Expense Form Section -->
+    <div class="add-expense-card">
+      <div class="add-expense-header">
+        <h2>Add a new expense</h2>
+        <button type="button" id="toggle-form-btn" class="toggle-form-btn">
+          <span class="toggle-icon">+</span>
+        </button>
+      </div>
+
+      <form method="POST" enctype="multipart/form-data" class="add-expense-form" id="expense-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-section-title">
+          <h3>Expense details</h3>
+          <p>Enter the basic information for your expense.</p>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="merchant">Merchant / Store</label>
+            <input 
+              type="text" 
+              id="merchant" 
+              name="merchant" 
+              placeholder="e.g. Woolworths"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="category">Category</label>
+            <select id="category" name="category" required>
+              <option value="">Select category</option>
+              <option value="Groceries">Groceries</option>
+              <option value="Food">Food</option>
+              <option value="Transport">Transport</option>
+              <option value="Bills">Bills</option>
+              <option value="Shopping">Shopping</option>
+              <option value="Health">Health</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="amount">Amount</label>
+            <input 
+              type="number" 
+              id="amount" 
+              name="amount" 
+              step="0.01" 
+              min="0"
+              placeholder="e.g. 24.50"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="expense_date">Date</label>
+            <input 
+              type="date" 
+              id="expense_date" 
+              name="expense_date"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="notes">Description / Notes</label>
+          <textarea 
+            id="notes" 
+            name="notes" 
+            rows="3"
+            placeholder="Optional note, e.g. weekly groceries"
+          ></textarea>
+        </div>
+
+        <div class="form-section-title">
+          <h3>Receipt image</h3>
+          <p>Attach the receipt image or PDF for record keeping (optional).</p>
+        </div>
+
+        <label for="receipt_image" class="receipt-upload-box">
+          <div class="receipt-upload-icon">📄</div>
+          <div>
+            <strong>Choose receipt file</strong>
+            <span>Accepted formats: JPG, JPEG, PNG, PDF</span>
+          </div>
+
+          <input 
+            type="file" 
+            id="receipt_image" 
+            name="receipt_image" 
+            accept=".png,.jpg,.jpeg,.webp,.pdf"
+          >
+        </label>
+
+        <div class="form-actions">
+          <button type="submit" class="submit-btn">Add Expense</button>
+          <button type="button" id="cancel-form-btn" class="cancel-btn">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="expenses-filter-card">
+      <form method="GET" class="expenses-filter-form">
+        <div class="filter-group">
+          <label for="search-merchant">Search merchant</label>
+          <input
+            type="text"
+            id="search-merchant"
+            name="q"
+            placeholder="e.g. Woolworths"
+            value="{{ search_query or '' }}"
+          >
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-category">Category</label>
+          <select id="filter-category" name="category">
+            <option value="">All categories</option>
+            {% for cat in categories %}
+              <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filter-actions">
+          <button type="submit" class="filter-btn">Filter</button>
+          <a href="{{ url_for('receipts.index') }}" class="clear-filter-btn">Clear</a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Expenses List Section -->
+    <div class="expenses-table-card">
+      <div class="table-top">
+        <div>
+          <h2>Your Expenses</h2>
+          <p>{{ expenses|length }} expense{{ '' if expenses|length == 1 else 's' }} found</p>
+        </div>
+      </div>
+
+      <div class="expenses-table-wrapper">
+        <table class="expenses-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Merchant</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% if expenses %}
+              {% for expense in expenses %}
+              <tr>
+                <td>{{ expense.expense_date }}</td>
+                <td>
+                  <strong>{{ expense.merchant }}</strong>
+                </td>
+                <td>
+                  <span class="category-pill">{{ expense.category }}</span>
+                </td>
+                <td class="amount-cell">
+                  ${{ "%.2f"|format(expense.amount) }}
+                </td>
+                <td>
+                  <a
+                    href="{{ url_for('receipts.receipt_detail', receipt_id=expense.id) }}"
+                    class="view-expense-link"
+                  >
+                    View
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="5" class="expenses-empty">
+                  No expenses found. Start by adding your first expense above.
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('toggle-form-btn');
+    const cancelBtn = document.getElementById('cancel-form-btn');
+    const expenseForm = document.getElementById('expense-form');
+
+    // Toggle form visibility
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', function() {
+        expenseForm.classList.toggle('hidden');
+        toggleBtn.classList.toggle('active');
+        const icon = toggleBtn.querySelector('.toggle-icon');
+        icon.textContent = expenseForm.classList.contains('hidden') ? '+' : '×';
+      });
+    }
+
+    // Cancel form
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        expenseForm.classList.add('hidden');
+        toggleBtn.classList.remove('active');
+        toggleBtn.querySelector('.toggle-icon').textContent = '+';
+        expenseForm.reset();
+      });
+    }
+  });
+</script>
+
+{% endblock %}

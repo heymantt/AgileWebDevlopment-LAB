@@ -18,9 +18,12 @@ def allowed_file(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-@receipts_bp.route("/upload", methods=["GET", "POST"])
+@receipts_bp.route("/", methods=["GET", "POST"])
 @login_required
-def upload_receipt():
+def index():
+    """Unified expenses page - displays expenses list with integrated add form."""
+    
+    # Handle POST requests (new expense submission)
     if request.method == "POST":
         merchant = request.form.get("merchant", "").strip()
         amount_raw = request.form.get("amount", "").strip()
@@ -55,6 +58,7 @@ def upload_receipt():
             expense_date = date.today()
 
         image_filename = None
+        save_path = None
         if file and file.filename:
             if not allowed_file(file.filename):
                 errors.append("Only PNG, JPG, JPEG, WEBP, and PDF files are allowed.")
@@ -70,8 +74,39 @@ def upload_receipt():
         if errors:
             for error in errors:
                 flash(error, "error")
-            return render_template("receipts/upload.html", page_title="Upload Receipt")
+            # Re-render the page with the form visible
+            q = request.args.get("q", "").strip()
+            category_filter = request.args.get("category", "").strip()
+            query = Receipt.query.filter_by(user_id=current_user.id)
+            
+            if q:
+                like_term = f"%{q}%"
+                query = query.filter(Receipt.merchant.ilike(like_term))
+            
+            if category_filter:
+                query = query.filter(Receipt.category == category_filter)
+            
+            expenses = query.order_by(Receipt.expense_date.desc(), Receipt.created_at.desc()).all()
+            
+            categories = (
+                db.session.query(Receipt.category)
+                .filter_by(user_id=current_user.id)
+                .distinct()
+                .order_by(Receipt.category.asc())
+                .all()
+            )
+            categories = [c[0] for c in categories]
+            
+            return render_template(
+                "receipts/index.html",
+                page_title="Expenses",
+                expenses=expenses,
+                categories=categories,
+                selected_category=category_filter,
+                search_query=q
+            )
 
+        # Create and save the receipt
         receipt = Receipt(
             user_id=current_user.id,
             merchant=merchant,
@@ -82,29 +117,19 @@ def upload_receipt():
             image_filename=image_filename
         )
 
-        if file and file.filename and image_filename:
-            save_path = os.path.join(
-                current_app.config["RECEIPT_UPLOAD_FOLDER"],
-                image_filename
-            )
+        if file and file.filename and image_filename and save_path:
             file.save(save_path)
 
         db.session.add(receipt)
         db.session.commit()
 
-        flash("Receipt uploaded successfully.", "success")
+        flash("Expense added successfully.", "success")
+        # Redirect to the expense detail page after successful submission
         return redirect(url_for("receipts.receipt_detail", receipt_id=receipt.id))
 
-    return render_template("receipts/upload.html", page_title="Upload Receipt")
-
-
-
-
-@receipts_bp.route("/archive")
-@login_required
-def archive():
+    # Handle GET requests (display the page with list and form)
     q = request.args.get("q", "").strip()
-    category = request.args.get("category", "").strip()
+    category_filter = request.args.get("category", "").strip()
 
     query = Receipt.query.filter_by(user_id=current_user.id)
 
@@ -112,10 +137,10 @@ def archive():
         like_term = f"%{q}%"
         query = query.filter(Receipt.merchant.ilike(like_term))
 
-    if category:
-        query = query.filter(Receipt.category == category)
+    if category_filter:
+        query = query.filter(Receipt.category == category_filter)
 
-    receipts = query.order_by(Receipt.expense_date.desc(), Receipt.created_at.desc()).all()
+    expenses = query.order_by(Receipt.expense_date.desc(), Receipt.created_at.desc()).all()
 
     categories = (
         db.session.query(Receipt.category)
@@ -127,13 +152,33 @@ def archive():
     categories = [c[0] for c in categories]
 
     return render_template(
-        "receipts/archive.html",
-        page_title="Receipt Archive",
-        receipts=receipts,
+        "receipts/index.html",
+        page_title="Expenses",
+        expenses=expenses,
         categories=categories,
-        selected_category=category,
+        selected_category=category_filter,
         search_query=q
     )
+
+
+@receipts_bp.route("/upload", methods=["GET"])
+@login_required
+def upload_receipt():
+    """Redirect to the unified expenses page."""
+    return redirect(url_for("receipts.index"))
+
+
+@receipts_bp.route("/archive", methods=["GET"])
+@login_required
+def archive():
+    """Redirect to the unified expenses page."""
+    # Preserve query parameters for continuity
+    q = request.args.get("q", "")
+    category = request.args.get("category", "")
+    
+    if q or category:
+        return redirect(url_for("receipts.index", q=q, category=category))
+    return redirect(url_for("receipts.index"))
 
 
 @receipts_bp.route("/<int:receipt_id>")
