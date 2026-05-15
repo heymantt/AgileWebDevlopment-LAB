@@ -1,5 +1,314 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="text-3xl font-bold">{{ heading if heading else "Group Detail" }}</h2>
+<style>
+    .page-header {
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    .page-header h1 { font-size: 32px; color: #2c3e50; margin-bottom: 6px; }
+    .page-header p { color: #7f8c8d; font-size: 14px; }
+    .header-actions { display: flex; gap: 10px; }
+    .btn { padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; transition: background 0.2s; text-decoration: none; display: inline-block; }
+    .btn:hover { background: #5568d3; }
+    .btn-secondary { background: #ecf0f1; color: #2c3e50; }
+    .btn-secondary:hover { background: #bdc3c7; }
+    .content-grid { display: grid; grid-template-columns: 300px 1fr; gap: 24px; align-items: start; }
+    @media (max-width: 768px) { .content-grid { grid-template-columns: 1fr; } }
+    .card { background: white; padding: 28px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); }
+    .card-title { font-size: 16px; font-weight: 700; color: #2c3e50; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; }
+    .member-list { list-style: none; padding: 0; margin: 0; }
+    .member-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; color: #2c3e50; }
+    .member-item:last-child { border-bottom: none; }
+    .member-avatar { width: 32px; height: 32px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+    .empty-state { text-align: center; padding: 30px 10px; color: #95a5a6; font-size: 14px; }
+    .expense-item { border: 1px solid #ecf0f1; border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+    .expense-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .expense-merchant { font-weight: 700; color: #2c3e50; font-size: 15px; }
+    .expense-meta { font-size: 12px; color: #95a5a6; margin-top: 2px; }
+    .expense-amount { font-size: 18px; font-weight: 700; color: #667eea; }
+    .splits-list { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .split-chip { display: flex; align-items: center; gap: 6px; background: #f5f6fa; border-radius: 20px; padding: 4px 12px; font-size: 12px; color: #2c3e50; cursor: pointer; border: 1px solid #ecf0f1; transition: all 0.2s; }
+    .split-chip.paid { background: #e8f8f0; border-color: #2ecc71; color: #27ae60; }
+    .split-chip:hover { opacity: 0.8; }
+    .modal { position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+    .modal.active { opacity: 1; visibility: visible; }
+    .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 520px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+    .modal-header h2 { margin: 0; color: #2c3e50; font-size: 20px; }
+    .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: #7f8c8d; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50; font-size: 13px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 9px 11px; border: 1px solid #dde1e7; border-radius: 8px; font-size: 14px; font-family: inherit; box-sizing: border-box; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.15); }
+    .form-group textarea { resize: vertical; min-height: 70px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .modal-buttons { display: flex; gap: 10px; margin-top: 22px; }
+    .modal-buttons button { flex: 1; padding: 11px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+    .btn-save { background: #667eea; color: white; }
+    .btn-save:hover { background: #5568d3; }
+    .btn-cancel { background: #ecf0f1; color: #2c3e50; }
+    .btn-cancel:hover { background: #bdc3c7; }
+    .loading { text-align: center; color: #95a5a6; padding: 20px; }
+    .badge { display: inline-block; background: #667eea; color: white; border-radius: 12px; padding: 2px 8px; font-size: 11px; font-weight: 600; }
+</style>
+
+{% if not group %}
+<div class="page-header">
+    <div>
+        <h1>Group Not Found</h1>
+        <p>This group does not exist or you do not have access to it.</p>
+    </div>
+    <a href="/groups" class="btn btn-secondary">← Back to Groups</a>
+</div>
+{% else %}
+
+<div class="page-header">
+    <div>
+        <h1>{{ group.name }}</h1>
+        <p>{{ group.description or 'No description provided.' }} &nbsp;·&nbsp; Created {{ group.created_at.strftime('%Y-%m-%d') }}</p>
+    </div>
+    <div class="header-actions">
+        <button class="btn" onclick="openAddExpenseModal()">+ Add Expense</button>
+        <a href="/groups" class="btn btn-secondary">← Back</a>
+    </div>
+</div>
+
+<div class="content-grid">
+    <!-- Members sidebar -->
+    <div class="card">
+        <div class="card-title">
+            <span>👥 Members</span>
+            <span class="badge">{{ group.members | length }}</span>
+        </div>
+        {% if group.members %}
+        <ul class="member-list">
+            {% for member in group.members %}
+            <li class="member-item">
+                <div class="member-avatar">{{ member.identifier[0].upper() }}</div>
+                <span>{{ member.identifier }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-state">No members yet.</div>
+        {% endif %}
+    </div>
+
+    <!-- Expenses panel -->
+    <div class="card">
+        <div class="card-title">
+            <span>💸 Shared Expenses</span>
+            <button class="btn" style="font-size:12px;padding:6px 14px;" onclick="openAddExpenseModal()">+ Add</button>
+        </div>
+        <div id="expensesContainer">
+            <div class="loading">Loading expenses…</div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Expense Modal -->
+<div id="addExpenseModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Add Group Expense</h2>
+            <button class="modal-close" onclick="closeAddExpenseModal()">&times;</button>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="merchant">Merchant / Description *</label>
+                <input type="text" id="merchant" placeholder="e.g., Pizza Palace">
+            </div>
+            <div class="form-group">
+                <label for="expAmount">Total Amount ($) *</label>
+                <input type="number" id="expAmount" min="0.01" step="0.01" placeholder="0.00">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="category">Category *</label>
+                <select id="category">
+                    <option value="">Select category…</option>
+                    <option>Food &amp; Dining</option>
+                    <option>Transport</option>
+                    <option>Accommodation</option>
+                    <option>Entertainment</option>
+                    <option>Groceries</option>
+                    <option>Utilities</option>
+                    <option>Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="expenseDate">Date *</label>
+                <input type="date" id="expenseDate">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="splitType">Split Type</label>
+            <select id="splitType" onchange="toggleCustomSplits(this.value)">
+                <option value="equal">Split equally among all members</option>
+                <option value="custom">Custom amounts per member</option>
+            </select>
+        </div>
+
+        <div id="customSplitsContainer" style="display:none;">
+            <div class="form-group">
+                <label>Custom Amounts per Member</label>
+                <div id="customSplitFields"></div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Notes (optional)</label>
+            <textarea id="notes" placeholder="Any extra details…"></textarea>
+        </div>
+
+        <div class="modal-buttons">
+            <button class="btn-save" onclick="submitExpense()">Add Expense</button>
+            <button class="btn-cancel" onclick="closeAddExpenseModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const GROUP_ID = {{ group.id }};
+const MEMBERS = [{% for m in group.members %}{ id: {{ m.id }}, name: "{{ m.identifier }}" }{% if not loop.last %},{% endif %}{% endfor %}];
+
+document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
+
+function buildCustomSplitFields() {
+    const container = document.getElementById('customSplitFields');
+    container.innerHTML = '';
+    MEMBERS.forEach(m => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:8px;';
+        row.innerHTML = `<span style="flex:1;font-size:13px;color:#2c3e50;">${m.name}</span>
+            <input type="number" id="split_${m.id}" min="0" step="0.01" placeholder="0.00"
+                style="width:100px;padding:7px;border:1px solid #dde1e7;border-radius:6px;font-size:13px;">`;
+        container.appendChild(row);
+    });
+}
+buildCustomSplitFields();
+
+function toggleCustomSplits(val) {
+    document.getElementById('customSplitsContainer').style.display = val === 'custom' ? 'block' : 'none';
+}
+
+function openAddExpenseModal() {
+    document.getElementById('addExpenseModal').classList.add('active');
+}
+
+function closeAddExpenseModal() {
+    document.getElementById('addExpenseModal').classList.remove('active');
+    ['merchant','expAmount','notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('category').value = '';
+    document.getElementById('splitType').value = 'equal';
+    document.getElementById('customSplitsContainer').style.display = 'none';
+    document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
+    buildCustomSplitFields();
+}
+
+async function submitExpense() {
+    const merchant = document.getElementById('merchant').value.trim();
+    const amount = document.getElementById('expAmount').value.trim();
+    const category = document.getElementById('category').value.trim();
+    const expenseDate = document.getElementById('expenseDate').value.trim();
+    const notes = document.getElementById('notes').value.trim();
+    const splitType = document.getElementById('splitType').value;
+
+    if (!merchant || !amount || !category || !expenseDate) {
+        alert('Please fill in all required fields (Merchant, Amount, Category, Date).');
+        return;
+    }
+
+    const payload = { merchant, amount: parseFloat(amount), category, expense_date: expenseDate, notes, split_type: splitType };
+
+    if (splitType === 'custom') {
+        const memberSplits = {};
+        MEMBERS.forEach(m => {
+            const val = parseFloat(document.getElementById(`split_${m.id}`).value || 0);
+            if (val > 0) memberSplits[String(m.id)] = val;
+        });
+        payload.member_splits = memberSplits;
+    }
+
+    try {
+        const response = await fetch(`/groups/${GROUP_ID}/add-expense`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (data.success) {
+            closeAddExpenseModal();
+            loadExpenses();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (err) {
+        alert('An error occurred: ' + err.message);
+    }
+}
+
+async function togglePaid(groupId, splitId, chip) {
+    try {
+        const res = await fetch(`/groups/${groupId}/mark-paid/${splitId}`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token() }}' }
+        });
+        const data = await res.json();
+        if (data.success) {
+            chip.classList.toggle('paid', data.paid);
+            chip.querySelector('.status').textContent = data.paid ? '✓ Paid' : 'Unpaid';
+        }
+    } catch (err) { console.error(err); }
+}
+
+async function loadExpenses() {
+    const container = document.getElementById('expensesContainer');
+    container.innerHTML = '<div class="loading">Loading…</div>';
+    try {
+        const res = await fetch(`/groups/${GROUP_ID}/expenses`);
+        const data = await res.json();
+        if (!data.success) { container.innerHTML = '<div class="empty-state">Could not load expenses.</div>'; return; }
+        if (!data.expenses.length) {
+            container.innerHTML = '<div class="empty-state">No shared expenses yet. Click "+ Add" to log one.</div>';
+            return;
+        }
+        container.innerHTML = data.expenses.map(exp => `
+            <div class="expense-item">
+                <div class="expense-header">
+                    <div>
+                        <div class="expense-merchant">${exp.merchant}</div>
+                        <div class="expense-meta">${exp.category} &middot; ${exp.expense_date}${exp.notes ? ' &middot; ' + exp.notes : ''}</div>
+                    </div>
+                    <div class="expense-amount">$${exp.amount.toFixed(2)}</div>
+                </div>
+                <div class="splits-list">
+                    ${exp.splits.map(s => `
+                        <span class="split-chip ${s.paid ? 'paid' : ''}" onclick="togglePaid(${GROUP_ID}, ${s.id}, this)">
+                            ${s.member_name} — $${s.amount.toFixed(2)}
+                            <span class="status">${s.paid ? '✓ Paid' : 'Unpaid'}</span>
+                        </span>`).join('')}
+                </div>
+            </div>`).join('');
+    } catch (err) {
+        container.innerHTML = '<div class="empty-state">Error loading expenses.</div>';
+    }
+}
+
+window.addEventListener('click', e => {
+    if (e.target === document.getElementById('addExpenseModal')) closeAddExpenseModal();
+});
+
+loadExpenses();
+</script>
+{% endif %}
 {% endblock %}

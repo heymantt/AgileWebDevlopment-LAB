@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="insights-page">
+  <div class="insights-container">
+
+    <div class="insights-header">
+      <div>
+        <p class="page-label">Financial Overview</p>
+        <h1>Financial Insights</h1>
+        <p>Review your income, expenses, balance, and spending patterns for this month.</p>
+      </div>
+    </div>
+
+    <div class="insights-cards">
+      <div class="insight-card">
+        <span>Monthly Income</span>
+        <strong>${{ "%.2f"|format(monthly_income) }}</strong>
+      </div>
+
+      <div class="insight-card expense-card">
+        <span>Monthly Expenses</span>
+        <strong>${{ "%.2f"|format(monthly_expenses) }}</strong>
+      </div>
+
+      <div class="insight-card balance-card">
+        <span>Remaining Balance</span>
+        <strong>${{ "%.2f"|format(balance) }}</strong>
+      </div>
+
+      <div class="insight-card">
+        <span>Savings Rate</span>
+        <strong>{{ "%.1f"|format(savings_rate) }}%</strong>
+      </div>
+    </div>
+
+    <div class="insights-layout">
+
+      <div class="insights-table-card">
+        <div class="table-top">
+          <div>
+            <h2>Spending by Category</h2>
+            <p>Category totals based on this month’s saved receipts.</p>
+          </div>
+        </div>
+
+        <div class="insights-table-wrapper">
+          <table class="insights-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Total Spent</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% if category_totals %}
+                {% for category, total in category_totals %}
+                  <tr>
+                    <td>
+                      <span class="insight-category-pill">{{ category }}</span>
+                    </td>
+                    <td class="amount-cell">${{ "%.2f"|format(total) }}</td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="2" class="insights-empty">No spending data available yet.</td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="insight-message-card">
+        <h2>Quick Insight</h2>
+
+        {% if top_category %}
+          <p>
+            Your highest spending category this month is
+            <strong>{{ top_category }}</strong>.
+          </p>
+        {% else %}
+          <p>
+            Add receipt records to generate spending insights.
+          </p>
+        {% endif %}
+
+        {% if balance < 0 %}
+          <div class="warning-box">
+            Your expenses are higher than your income this month.
+          </div>
+        {% elif monthly_income > 0 %}
+          <div class="success-box">
+            You are currently staying within your monthly income.
+          </div>
+        {% else %}
+          <div class="neutral-box">
+            Add income records to calculate your savings rate.
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <div class="recent-activity-card">
+      <div class="table-top">
+        <div>
+          <h2>Recent Receipts</h2>
+          <p>Your latest saved expense records.</p>
+        </div>
+      </div>
+
+      <div class="insights-table-wrapper">
+        <table class="insights-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Merchant</th>
+              <th>Category</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% if recent_receipts %}
+              {% for receipt in recent_receipts %}
+                <tr>
+                  <td>{{ receipt.expense_date }}</td>
+                  <td><strong>{{ receipt.merchant }}</strong></td>
+                  <td>
+                    <span class="insight-category-pill">{{ receipt.category }}</span>
+                  </td>
+                  <td class="amount-cell">${{ "%.2f"|format(receipt.amount) }}</td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="4" class="insights-empty">No recent receipts found.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="insights-cards secondary-insights">
+      <div class="insight-card">
+        <span>Receipts This Month</span>
+        <strong>{{ receipt_count }}</strong>
+      </div>
+
+      <div class="insight-card">
+        <span>Average Daily Spend</span>
+        <strong>${{ "%.2f"|format(average_daily_spend) }}</strong>
+      </div>
+
+      <div class="insight-card">
+        <span>Top Category Share</span>
+        <strong>{{ "%.1f"|format(top_category_percentage) }}%</strong>
+      </div>
+
+      <div class="insight-card">
+        <span>Largest Expense</span>
+        {% if largest_expense %}
+          <strong>${{ "%.2f"|format(largest_expense.amount) }}</strong>
+          <small>{{ largest_expense.merchant }}</small>
+        {% else %}
+          <strong>$0.00</strong>
+          <small>No expense yet</small>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

@@ -4,5 +4,4 @@ instance/
 .env
 .venv/
 venv/
-trackmint.db
 app/static/uploads/

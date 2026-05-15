@@ -1,4 +1,497 @@
-<h1>Profile</h1>
-<p>Username: {{ current_user.username }}</p>
-<p>Email: {{ current_user.email }}</p>
-<p>Authenticated: {{ current_user.is_authenticated }}</p>
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .profile-container {
+        max-width: 600px;
+        margin: 40px auto;
+    }
+
+    .profile-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 12px 12px 0 0;
+        text-align: center;
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        margin: 0 auto 20px;
+        border: 3px solid white;
+    }
+
+    .profile-header h1 {
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
+
+    .profile-header p {
+        opacity: 0.95;
+        font-size: 16px;
+    }
+
+    .profile-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .profile-body {
+        padding: 40px;
+    }
+
+    .info-group {
+        margin-bottom: 30px;
+        padding-bottom: 30px;
+        border-bottom: 1px solid #ecf0f1;
+    }
+
+    .info-group:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .info-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+    }
+
+    .info-value {
+        font-size: 20px;
+        font-weight: 600;
+        color: #2c3e50;
+        word-break: break-all;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-mini {
+        background: #f5f7fa;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .stat-mini-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 5px;
+    }
+
+    .stat-mini-label {
+        font-size: 12px;
+        color: #7f8c8d;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+
+    .btn-primary {
+        background-color: #667eea;
+        color: white;
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .btn-primary:hover {
+        background-color: #5568d3;
+    }
+
+    .btn-secondary {
+        background-color: #ecf0f1;
+        color: #2c3e50;
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .btn-secondary:hover {
+        background-color: #bdc3c7;
+    }
+
+    .account-section {
+        background: #f9f9f9;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+
+    .account-section-title {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        font-size: 14px;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 450px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        color: #2c3e50;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #7f8c8d;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 14px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ecf0f1;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+    }
+
+    .modal-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .modal-buttons button {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-save {
+        background: #667eea;
+        color: white;
+    }
+
+    .btn-save:hover {
+        background: #5568d3;
+    }
+
+    .btn-cancel {
+        background: #ecf0f1;
+        color: #2c3e50;
+    }
+
+    .btn-cancel:hover {
+        background: #bdc3c7;
+    }
+
+    @media (max-width: 600px) {
+        .profile-header {
+            padding: 30px 20px;
+        }
+
+        .profile-header h1 {
+            font-size: 24px;
+        }
+
+        .profile-body {
+            padding: 20px;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="profile-container">
+    <div class="profile-card">
+        <div class="profile-header">
+            <div class="profile-avatar">👤</div>
+            <h1>{{ current_user.username }}</h1>
+            <p>Member since 2026</p>
+        </div>
+
+        <div class="profile-body">
+            <div class="stats-grid">
+                <div class="stat-mini">
+                    <div class="stat-mini-value">0</div>
+                    <div class="stat-mini-label">Receipts</div>
+                </div>
+                <div class="stat-mini">
+                    <div class="stat-mini-value">0</div>
+                    <div class="stat-mini-label">Groups</div>
+                </div>
+                <div class="stat-mini">
+                    <div class="stat-mini-value">0</div>
+                    <div class="stat-mini-label">Points</div>
+                </div>
+            </div>
+
+            <div class="info-group">
+                <div class="info-label">Email Address</div>
+                <div class="info-value">{{ current_user.email }}</div>
+            </div>
+
+            <div class="info-group">
+                <div class="info-label">Username</div>
+                <div class="info-value">{{ current_user.username }}</div>
+            </div>
+
+            <div class="info-group">
+                <div class="info-label">Account Status</div>
+                <div class="info-value">
+                    <span style="background-color: #d4edda; color: #155724; padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: 600;">
+                        ✓ Active
+                    </span>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="openEditProfileModal()">Edit Profile</button>
+                <button class="btn btn-secondary" onclick="openChangePasswordModal()">Change Password</button>
+            </div>
+
+            <div class="account-section">
+                <div class="account-section-title">Account Preferences</div>
+                <p style="font-size: 13px; color: #7f8c8d; margin-bottom: 10px;">
+                    📧 Email notifications: <strong>Enabled</strong>
+                </p>
+                <p style="font-size: 13px; color: #7f8c8d;">
+                    🔒 Two-Factor Authentication: <strong>Not enabled</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div id="editProfileModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Edit Profile</h2>
+            <button class="modal-close" onclick="closeEditProfileModal()">&times;</button>
+        </div>
+        <form id="editProfileForm">
+            <div class="form-group">
+                <label for="editUsername">Username</label>
+                <input type="text" id="editUsername" value="{{ current_user.username }}" required>
+            </div>
+            <div class="modal-buttons">
+                <button type="submit" class="btn-save">Save Changes</button>
+                <button type="button" class="btn-cancel" onclick="closeEditProfileModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div id="changePasswordModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Change Password</h2>
+            <button class="modal-close" onclick="closeChangePasswordModal()">&times;</button>
+        </div>
+        <form id="changePasswordForm">
+            <div class="form-group">
+                <label for="oldPassword">Current Password</label>
+                <input type="password" id="oldPassword" required>
+            </div>
+            <div class="form-group">
+                <label for="newPassword">New Password</label>
+                <input type="password" id="newPassword" placeholder="Minimum 6 characters" required>
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirm New Password</label>
+                <input type="password" id="confirmPassword" required>
+            </div>
+            <div class="modal-buttons">
+                <button type="submit" class="btn-save">Change Password</button>
+                <button type="button" class="btn-cancel" onclick="closeChangePasswordModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEditProfileModal() {
+        document.getElementById('editProfileModal').classList.add('show');
+    }
+
+    function closeEditProfileModal() {
+        document.getElementById('editProfileModal').classList.remove('show');
+    }
+
+    function openChangePasswordModal() {
+        document.getElementById('changePasswordModal').classList.add('show');
+    }
+
+    function closeChangePasswordModal() {
+        document.getElementById('changePasswordModal').classList.remove('show');
+        document.getElementById('changePasswordForm').reset();
+    }
+
+    document.getElementById('editProfileForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const username = document.getElementById('editUsername').value.trim();
+
+        try {
+            const response = await fetch('{{ url_for("main.update_profile") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    username: username
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('Profile updated successfully!');
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) {
+            alert('An error occurred: ' + error.message);
+        }
+    });
+
+    document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const oldPassword = document.getElementById('oldPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        try {
+            const response = await fetch('{{ url_for("main.change_password") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    old_password: oldPassword,
+                    new_password: newPassword,
+                    confirm_password: confirmPassword
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('Password changed successfully!');
+                closeChangePasswordModal();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) {
+            alert('An error occurred: ' + error.message);
+        }
+    });
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const editModal = document.getElementById('editProfileModal');
+        const passwordModal = document.getElementById('changePasswordModal');
+        
+        if (event.target == editModal) {
+            editModal.classList.remove('show');
+        }
+        if (event.target == passwordModal) {
+            passwordModal.classList.remove('show');
+        }
+    }
+</script>
+
+{% endblock %}

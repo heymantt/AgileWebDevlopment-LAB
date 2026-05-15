@@ -1,5 +1,78 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="text-3xl font-bold">Leaderboard</h2>
+<style>
+    .page-header {
+        margin-bottom: 40px;
+    }
+
+    .page-header h1 {
+        font-size: 32px;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        color: #7f8c8d;
+        font-size: 16px;
+    }
+
+    .leaderboard-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    .leaderboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        display: grid;
+        grid-template-columns: 60px 1fr 150px 150px;
+        gap: 20px;
+        font-weight: 600;
+    }
+
+    .leaderboard-body {
+        padding: 20px;
+        text-align: center;
+    }
+
+    .empty-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+    }
+
+    .empty-text {
+        font-size: 18px;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    .empty-subtext {
+        color: #7f8c8d;
+    }
+</style>
+
+<div class="page-header">
+    <h1>🎆 Leaderboard</h1>
+    <p>Compete with others and earn badges for achieving savings goals.</p>
+</div>
+
+<div class="leaderboard-container">
+    <div class="leaderboard-header">
+        <div>Rank</div>
+        <div>User</div>
+        <div>Points</div>
+        <div>Streak</div>
+    </div>
+    <div class="leaderboard-body">
+        <div class="empty-icon">🏆</div>
+        <div class="empty-text">No users yet</div>
+        <div class="empty-subtext">Users will appear here as they track their expenses.</div>
+    </div>
+</div>
+
 {% endblock %}

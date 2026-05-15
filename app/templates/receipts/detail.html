@@ -1,27 +1,114 @@
-{% extends "base.html" %} {% block content %}
-<h1>Receipt Detail</h1>
+{% extends "base.html" %}
 
-<p><strong>Merchant:</strong> {{ receipt.merchant }}</p>
-<p><strong>Amount:</strong> ${{ "%.2f"|format(receipt.amount) }}</p>
-<p><strong>Category:</strong> {{ receipt.category }}</p>
-<p><strong>Date:</strong> {{ receipt.expense_date }}</p>
-<p><strong>Notes:</strong> {{ receipt.notes or "—" }}</p>
+{% block content %}
 
-{% if receipt.image_filename %}
-<p>
-  <strong>Uploaded file:</strong>
-  <a
-    href="{{ url_for('static', filename='uploads/receipts/' ~ receipt.image_filename) }}"
-    target="_blank"
-  >
-    Open file
-  </a>
-</p>
-{% endif %}
+<section class="receipt-detail-page">
+  <div class="receipt-detail-container">
 
-<p>
-  <a href="{{ url_for('receipts.edit_receipt', receipt_id=receipt.id) }}"
-    >Edit Receipt</a
-  >
-</p>
+    <div class="receipt-detail-header">
+      <div>
+        <p class="page-label">Expense Record</p>
+        <h1>Expense Detail</h1>
+        <p>Review the saved expense information.</p>
+      </div>
+
+      <a href="{{ url_for('receipts.edit_receipt', receipt_id=receipt.id) }}" class="edit-receipt-btn">
+        Edit Expense
+      </a>
+    </div>
+
+    <div class="receipt-detail-grid">
+
+      <div class="receipt-info-card">
+        <div class="receipt-card-top">
+          <div class="receipt-icon">🧾</div>
+          <div>
+            <h2>{{ receipt.merchant }}</h2>
+            <p>{{ receipt.category }}</p>
+          </div>
+        </div>
+
+        <div class="amount-box">
+          <span>Total Amount</span>
+          <strong>${{ "%.2f"|format(receipt.amount) }}</strong>
+        </div>
+
+        <div class="detail-list">
+          <div class="detail-row">
+            <span>Merchant</span>
+            <strong>{{ receipt.merchant }}</strong>
+          </div>
+
+          <div class="detail-row">
+            <span>Category</span>
+            <strong>{{ receipt.category }}</strong>
+          </div>
+
+          <div class="detail-row">
+            <span>Date</span>
+            <strong>{{ receipt.expense_date }}</strong>
+          </div>
+
+          <div class="detail-row">
+            <span>Notes</span>
+            <strong>{{ receipt.notes or "No notes added" }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="receipt-preview-card">
+        <h2>Expense Receipt</h2>
+
+        {% if receipt.image_filename %}
+          <div class="receipt-image-preview">
+            {% if receipt.image_filename.endswith('.pdf') %}
+              <div class="pdf-preview">
+                <div class="pdf-icon">📄</div>
+                <p>PDF receipt uploaded</p>
+                <a 
+                  href="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}" 
+                  target="_blank"
+                  class="view-file-btn"
+                >
+                  Open PDF
+                </a>
+              </div>
+            {% else %}
+              <img 
+                src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}" 
+                alt="Receipt image"
+              >
+            {% endif %}
+          </div>
+
+          <a 
+            href="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}" 
+            target="_blank"
+            class="view-file-btn full-width"
+          >
+            View Full Receipt
+          </a>
+        {% else %}
+          <div class="no-image-box">
+            <div class="no-image-icon">🖼️</div>
+            <p>No receipt image was uploaded for this record.</p>
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <div class="receipt-actions">
+      <a href="{{ url_for('receipts.index') }}" class="secondary-action">
+        Add Another Expense
+      </a>
+
+      <a href="{{ url_for('receipts.index') }}" class="primary-action">
+        Back to Expenses
+      </a>
+    </div>
+
+  </div>
+</section>
+
 {% endblock %}
