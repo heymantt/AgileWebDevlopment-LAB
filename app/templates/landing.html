@@ -2,29 +2,58 @@
 
 {% block content %}
 <style>
+    /* ========== General Styling ========== */
+    .landing-page {
+        background: #f8fafc;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* ========== Hero Section ========== */
     .hero {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #16805f 0%, #0d5a44 100%);
         color: white;
-        padding: 60px 20px;
-        border-radius: 12px;
+        padding: 80px 20px;
         text-align: center;
-        margin-bottom: 60px;
-        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 500px;
+        height: 500px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 50%;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        max-width: 800px;
+        margin: 0 auto;
     }
 
     .hero h1 {
-        font-size: 48px;
+        font-size: 56px;
+        font-weight: 900;
         margin-bottom: 20px;
-        font-weight: 700;
+        line-height: 1.2;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     }
 
-    .hero p {
-        font-size: 20px;
-        margin-bottom: 30px;
+    .hero .subtitle {
+        font-size: 24px;
+        margin-bottom: 40px;
         opacity: 0.95;
-        max-width: 600px;
-        margin-left: auto;
-        margin-right: auto;
+        line-height: 1.6;
     }
 
     .cta-buttons {
@@ -32,207 +61,729 @@
         gap: 20px;
         justify-content: center;
         flex-wrap: wrap;
+        margin-bottom: 30px;
     }
 
     .btn {
-        padding: 14px 32px;
+        padding: 16px 40px;
         font-size: 16px;
+        font-weight: 700;
         border: none;
-        border-radius: 8px;
+        border-radius: 12px;
         cursor: pointer;
-        font-weight: 600;
-        transition: all 0.3s;
+        transition: all 0.3s ease;
         text-decoration: none;
         display: inline-block;
+        text-align: center;
     }
 
     .btn-primary {
-        background-color: white;
-        color: #667eea;
+        background: white;
+        color: #16805f;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
 
     .btn-primary:hover {
         transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
     }
 
     .btn-secondary {
-        background-color: transparent;
+        background: transparent;
         color: white;
         border: 2px solid white;
     }
 
     .btn-secondary:hover {
-        background-color: white;
-        color: #667eea;
+        background: white;
+        color: #16805f;
     }
 
-    .features {
+    .hero-stats {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 30px;
-        margin-bottom: 60px;
+        margin-top: 50px;
+        padding-top: 40px;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .stat {
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 32px;
+        font-weight: 900;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        opacity: 0.85;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* ========== Section Styling ========== */
+    section {
+        padding: 80px 20px;
+    }
+
+    .section-title {
+        font-size: 44px;
+        font-weight: 900;
+        margin-bottom: 20px;
+        text-align: center;
+        color: #12372f;
+    }
+
+    .section-subtitle {
+        font-size: 18px;
+        text-align: center;
+        color: #5f6f6a;
+        max-width: 600px;
+        margin: 0 auto 60px;
+        line-height: 1.6;
+    }
+
+    /* ========== Features Section ========== */
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 40px;
+        margin-top: 60px;
     }
 
     .feature-card {
         background: white;
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        padding: 40px 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(22, 128, 95, 0.08);
+        border-top: 5px solid #16805f;
+        transition: all 0.3s ease;
         text-align: center;
-        transition: all 0.3s;
-        border-top: 4px solid #667eea;
     }
 
     .feature-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        transform: translateY(-8px);
+        box-shadow: 0 20px 50px rgba(22, 128, 95, 0.15);
+        border-top-color: #90cdb9;
     }
 
     .feature-icon {
-        font-size: 48px;
-        margin-bottom: 15px;
+        font-size: 56px;
+        margin-bottom: 20px;
     }
 
     .feature-card h3 {
-        font-size: 20px;
-        margin-bottom: 10px;
-        color: #2c3e50;
+        font-size: 22px;
+        font-weight: 800;
+        margin-bottom: 15px;
+        color: #12372f;
     }
 
     .feature-card p {
-        color: #7f8c8d;
+        color: #5f6f6a;
+        font-size: 15px;
+        line-height: 1.7;
+    }
+
+    /* ========== How It Works Section ========== */
+    .how-it-works {
+        background: white;
+    }
+
+    .steps-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 40px;
+        margin-top: 60px;
+    }
+
+    .step-card {
+        position: relative;
+        padding: 40px 30px;
+        background: linear-gradient(135deg, #f8fafc 0%, #eef7f3 100%);
+        border-radius: 16px;
+        border: 2px solid #e0ede8;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .step-card:hover {
+        border-color: #16805f;
+        box-shadow: 0 10px 30px rgba(22, 128, 95, 0.1);
+    }
+
+    .step-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #16805f 0%, #0d5a44 100%);
+        color: white;
+        border-radius: 50%;
+        font-size: 24px;
+        font-weight: 900;
+        margin-bottom: 20px;
+    }
+
+    .step-card h3 {
+        font-size: 20px;
+        font-weight: 800;
+        margin-bottom: 15px;
+        color: #12372f;
+    }
+
+    .step-card p {
+        color: #5f6f6a;
         font-size: 14px;
         line-height: 1.6;
     }
 
-    .stats {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 40px;
-        border-radius: 12px;
+    .step-arrow {
+        display: none;
+        position: absolute;
+        right: -30px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 28px;
+        color: #16805f;
+    }
+
+    @media (min-width: 1024px) {
+        .step-card:not(:last-child) .step-arrow {
+            display: block;
+        }
+    }
+
+    /* ========== Benefits Section ========== */
+    .benefits {
+        background: linear-gradient(135deg, #f8fafc 0%, #eef7f3 100%);
+    }
+
+    .benefits-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 30px;
-        text-align: center;
-        margin-bottom: 60px;
+        margin-top: 60px;
     }
 
-    .stat {
+    .benefit-item {
+        background: white;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 5px 15px rgba(22, 128, 95, 0.05);
         display: flex;
-        flex-direction: column;
-        gap: 10px;
+        gap: 20px;
     }
 
-    .stat-number {
-        font-size: 36px;
-        font-weight: 700;
-    }
-
-    .stat-label {
-        font-size: 14px;
-        opacity: 0.95;
-    }
-
-    .section-title {
-        font-size: 32px;
-        font-weight: 700;
-        margin-bottom: 40px;
+    .benefit-icon {
+        font-size: 40px;
+        min-width: 50px;
         text-align: center;
-        color: #2c3e50;
     }
 
+    .benefit-content h4 {
+        font-size: 18px;
+        font-weight: 800;
+        margin: 0 0 10px 0;
+        color: #12372f;
+    }
+
+    .benefit-content p {
+        margin: 0;
+        color: #5f6f6a;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    /* ========== Testimonials Section ========== */
+    .testimonials {
+        background: white;
+    }
+
+    .testimonials-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 30px;
+        margin-top: 60px;
+    }
+
+    .testimonial-card {
+        background: linear-gradient(135deg, #f8fafc 0%, #eef7f3 100%);
+        padding: 40px 30px;
+        border-radius: 16px;
+        border-left: 5px solid #16805f;
+        box-shadow: 0 5px 15px rgba(22, 128, 95, 0.08);
+    }
+
+    .testimonial-rating {
+        color: #ffc107;
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+
+    .testimonial-text {
+        font-size: 15px;
+        color: #5f6f6a;
+        margin-bottom: 20px;
+        line-height: 1.7;
+        font-style: italic;
+    }
+
+    .testimonial-author {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .author-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #16805f 0%, #90cdb9 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 800;
+        font-size: 20px;
+    }
+
+    .author-info h4 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 800;
+        color: #12372f;
+    }
+
+    .author-info p {
+        margin: 3px 0 0 0;
+        font-size: 12px;
+        color: #7a8a85;
+    }
+
+    /* ========== CTA Section ========== */
+    .cta-section {
+        background: linear-gradient(135deg, #16805f 0%, #0d5a44 100%);
+        color: white;
+        text-align: center;
+        padding: 60px 20px;
+        border-radius: 20px;
+        margin: 80px 20px;
+    }
+
+    .cta-section h2 {
+        font-size: 40px;
+        font-weight: 900;
+        margin-bottom: 15px;
+    }
+
+    .cta-section p {
+        font-size: 18px;
+        opacity: 0.95;
+        margin-bottom: 30px;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* ========== FAQ Section ========== */
+    .faq {
+        background: white;
+    }
+
+    .faq-container {
+        max-width: 700px;
+        margin: 60px auto 0;
+    }
+
+    .faq-item {
+        background: linear-gradient(135deg, #f8fafc 0%, #eef7f3 100%);
+        border: 1px solid #e0ede8;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+
+    .faq-question {
+        padding: 20px 25px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 700;
+        color: #12372f;
+        transition: all 0.3s ease;
+    }
+
+    .faq-question:hover {
+        background: white;
+        color: #16805f;
+    }
+
+    .faq-toggle {
+        font-size: 20px;
+        transition: transform 0.3s ease;
+    }
+
+    .faq-answer {
+        display: none;
+        padding: 0 25px 20px;
+        color: #5f6f6a;
+        font-size: 14px;
+        line-height: 1.7;
+        background: white;
+        border-top: 1px solid #e0ede8;
+    }
+
+    .faq-item.active .faq-answer {
+        display: block;
+    }
+
+    .faq-item.active .faq-toggle {
+        transform: rotate(180deg);
+    }
+
+    /* ========== Responsive Design ========== */
     @media (max-width: 768px) {
         .hero h1 {
-            font-size: 32px;
+            font-size: 36px;
         }
 
-        .hero p {
-            font-size: 16px;
+        .hero .subtitle {
+            font-size: 18px;
         }
 
         .cta-buttons {
             flex-direction: column;
-            gap: 15px;
         }
 
         .btn {
             width: 100%;
         }
+
+        .section-title {
+            font-size: 32px;
+        }
+
+        .step-arrow {
+            display: none !important;
+        }
+
+        .cta-section h2 {
+            font-size: 28px;
+        }
+
+        .hero-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    /* ========== Animation ========== */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .feature-card {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .step-card {
+        animation: fadeInUp 0.6s ease-out;
     }
 </style>
 
-<div class="hero">
-    <h1>💳 Welcome to TrackMint</h1>
-    <p>Smart expense tracking and credit card management for the modern professional. Take control of your finances effortlessly.</p>
-    <div class="cta-buttons">
-        {% if not current_user.is_authenticated %}
-        <a href="{{ url_for('auth.signup') }}" class="btn btn-primary">Get Started</a>
-        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary">Sign In</a>
-        {% else %}
-        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
-        {% endif %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <h1>💳 Master Your Finances with TrackMint</h1>
+        <p class="subtitle">Track expenses, manage income, and achieve financial goals with our intelligent expense tracking platform.</p>
+        <div class="cta-buttons">
+            {% if not current_user.is_authenticated %}
+            <a href="{{ url_for('auth.signup') }}" class="btn btn-primary">Get Started Free</a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-secondary">Sign In</a>
+            {% else %}
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
+            <a href="{{ url_for('insights.insights_home') }}" class="btn btn-secondary">View Insights</a>
+            {% endif %}
+        </div>
+        <div class="hero-stats">
+            <div class="stat">
+                <div class="stat-number">50K+</div>
+                <div class="stat-label">Active Users</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">$2.5B</div>
+                <div class="stat-label">Tracked</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">99.9%</div>
+                <div class="stat-label">Uptime</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">24/7</div>
+                <div class="stat-label">Support</div>
+            </div>
+        </div>
     </div>
-</div>
+</section>
 
-<div class="stats">
-    <div class="stat">
-        <div class="stat-number">50K+</div>
-        <div class="stat-label">Active Users</div>
+<!-- How It Works Section -->
+<section>
+    <div class="container">
+        <h2 class="section-title">How It Works</h2>
+        <p class="section-subtitle">Get started in minutes and take control of your finances with three simple steps.</p>
+        <div class="steps-container">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3>Create Account</h3>
+                <p>Sign up in seconds with your email. No credit card required. Get instant access to all features.</p>
+                <div class="step-arrow">→</div>
+            </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3>Add Transactions</h3>
+                <p>Upload receipts or manually log expenses. Categorize automatically with our smart system.</p>
+                <div class="step-arrow">→</div>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3>Get Insights</h3>
+                <p>View detailed analytics, track patterns, and make smarter financial decisions with AI insights.</p>
+            </div>
+        </div>
     </div>
-    <div class="stat">
-        <div class="stat-number">$2.5B</div>
-        <div class="stat-label">Tracked Expenses</div>
-    </div>
-    <div class="stat">
-        <div class="stat-number">99.9%</div>
-        <div class="stat-label">Uptime</div>
-    </div>
-    <div class="stat">
-        <div class="stat-number">24/7</div>
-        <div class="stat-label">Support</div>
-    </div>
-</div>
+</section>
 
-<h2 class="section-title">Key Features</h2>
-<div class="features">
-    <div class="feature-card">
-        <div class="feature-icon">📊</div>
-        <h3>Smart Analytics</h3>
-        <p>Get detailed insights into your spending patterns with advanced analytics and visual reports.</p>
+<!-- Key Features Section -->
+<section style="background: linear-gradient(135deg, #f8fafc 0%, #eef7f3 100%);">
+    <div class="container">
+        <h2 class="section-title">Powerful Features</h2>
+        <p class="section-subtitle">Everything you need to manage your finances efficiently and effectively.</p>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Smart Analytics</h3>
+                <p>Get detailed insights into your spending patterns with advanced analytics, charts, and visual reports tailored to your needs.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🧾</div>
+                <h3>Receipt Management</h3>
+                <p>Upload and organize receipts with OCR technology. Never lose track of your transactions again.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💰</div>
+                <h3>Income Tracking</h3>
+                <p>Monitor multiple income streams and get a complete picture of your financial health in real-time.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>Group Sharing</h3>
+                <p>Share expenses with friends and family. Split bills fairly and track shared spending effortlessly.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🏆</div>
+                <h3>Leaderboards</h3>
+                <p>Compete with friends on savings goals and gamify your financial discipline for better results.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Bank-Level Security</h3>
+                <p>Your financial data is protected with enterprise-grade encryption and industry-leading security standards.</p>
+            </div>
+        </div>
     </div>
-    <div class="feature-card">
-        <div class="feature-icon">🧾</div>
-        <h3>Receipt Management</h3>
-        <p>Upload and organize receipts automatically. Never lose track of your transactions again.</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon">👥</div>
-        <h3>Group Tracking</h3>
-        <p>Share expenses with friends and family. Split bills fairly and track shared spending.</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon">💰</div>
-        <h3>Income Tracking</h3>
-        <p>Monitor multiple income streams and get a complete picture of your financial health.</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon">🏆</div>
-        <h3>Leaderboards</h3>
-        <p>Compete with friends on savings goals and achieve better financial discipline.</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon">🔒</div>
-        <h3>Bank-Level Security</h3>
-        <p>Your financial data is protected with enterprise-grade encryption and security.</p>
-    </div>
-</div>
+</section>
 
+<!-- Benefits Section -->
+<section class="benefits">
+    <div class="container">
+        <h2 class="section-title">Why Choose TrackMint?</h2>
+        <p class="section-subtitle">Discover the benefits that make us the best choice for expense tracking.</p>
+        <div class="benefits-grid">
+            <div class="benefit-item">
+                <div class="benefit-icon">⚡</div>
+                <div class="benefit-content">
+                    <h4>Lightning Fast</h4>
+                    <p>Instant syncing and real-time updates across all your devices. Always stay current.</p>
+                </div>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon">🎯</div>
+                <div class="benefit-content">
+                    <h4>Goal Setting</h4>
+                    <p>Set budget goals and track your progress towards financial milestones effortlessly.</p>
+                </div>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon">📱</div>
+                <div class="benefit-content">
+                    <h4>Mobile Ready</h4>
+                    <p>Use TrackMint on the go with our fully responsive web app. Perfect for busy professionals.</p>
+                </div>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon">🔄</div>
+                <div class="benefit-content">
+                    <h4>Smart Categorization</h4>
+                    <p>AI-powered automatic expense categorization saves time and increases accuracy.</p>
+                </div>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon">📈</div>
+                <div class="benefit-content">
+                    <h4>Advanced Reports</h4>
+                    <p>Generate comprehensive financial reports for better understanding of spending habits.</p>
+                </div>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-icon">💡</div>
+                <div class="benefit-content">
+                    <h4>AI Insights</h4>
+                    <p>Get personalized recommendations to save more money and optimize your finances.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="testimonials">
+    <div class="container">
+        <h2 class="section-title">What Users Say</h2>
+        <p class="section-subtitle">Join thousands of satisfied users who have transformed their financial lives with TrackMint.</p>
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-rating">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"TrackMint completely changed how I manage my finances. The insights are incredibly helpful, and the interface is so intuitive!"</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">SA</div>
+                    <div class="author-info">
+                        <h4>Sarah Anderson</h4>
+                        <p>Freelance Designer</p>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-rating">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"Finally, an app that makes expense tracking fun! The leaderboard feature keeps me motivated to save more every month."</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">MJ</div>
+                    <div class="author-info">
+                        <h4>Michael Johnson</h4>
+                        <p>Software Engineer</p>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-rating">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"I've saved $5000 in just three months thanks to TrackMint's smart analytics. Best financial decision I've made!"</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">EP</div>
+                    <div class="author-info">
+                        <h4>Emily Peterson</h4>
+                        <p>Marketing Manager</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="faq">
+    <div class="container">
+        <h2 class="section-title">Frequently Asked Questions</h2>
+        <p class="section-subtitle">Find answers to common questions about TrackMint and how we can help you.</p>
+        <div class="faq-container">
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Is TrackMint free to use?</span>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    Yes! TrackMint is completely free to use. We offer all core features at no cost. Premium features may become available in the future for power users.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>How secure is my data?</span>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    Your data is protected with enterprise-grade encryption and follows industry-leading security standards. We never share your information with third parties.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Can I use TrackMint on mobile?</span>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    TrackMint is fully responsive and works perfectly on all mobile devices, tablets, and desktops. Use it anywhere, anytime.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>How do I import my data?</span>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    You can manually add expenses, upload receipts with our OCR feature, or contact our support team for bulk imports from other services.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>What payment methods do you accept?</span>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    We accept all major payment methods including credit cards, debit cards, and digital wallets. All transactions are processed securely.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span>Do you offer customer support?</span>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    Yes! We offer 24/7 customer support via email and chat. Our team is always ready to help you with any questions or issues.
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Final CTA Section -->
 {% if not current_user.is_authenticated %}
-<div style="background: #ecf0f1; padding: 40px; border-radius: 12px; text-align: center;">
-    <h2>Ready to take control of your finances?</h2>
-    <p style="margin-top: 10px; font-size: 16px; color: #7f8c8d;">Join thousands of users who are already tracking their expenses with TrackMint.</p>
-    <a href="{{ url_for('auth.signup') }}" class="btn btn-primary" style="margin-top: 20px; background-color: #667eea; color: white;">Create Free Account</a>
+<div class="container">
+    <div class="cta-section">
+        <h2>Ready to Master Your Finances?</h2>
+        <p>Join thousands of users who are already saving more and spending smarter with TrackMint. Start your free account today!</p>
+        <a href="{{ url_for('auth.signup') }}" class="btn btn-primary" style="background-color: white; color: #16805f; padding: 16px 50px; font-size: 16px;">Create Free Account</a>
+    </div>
 </div>
 {% endif %}
+
+<script>
+    // FAQ Toggle Functionality
+    document.querySelectorAll('.faq-question').forEach(question => {
+        question.addEventListener('click', function() {
+            const faqItem = this.parentElement;
+            faqItem.classList.toggle('active');
+        });
+    });
+</script>
+
 {% endblock %}

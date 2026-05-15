@@ -1206,19 +1206,28 @@ footer {
 
 .insights-header {
     margin-bottom: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
 }
 
-.insights-header h1 {
-    margin: 0;
+.header-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.budget-badge {
+    padding: 12px 20px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 700;
     color: #12372f;
-    font-size: 40px;
-    font-weight: 800;
-}
-
-.insights-header p {
-    margin-top: 10px;
-    color: #5f6f6a;
-    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(18, 55, 47, 0.15);
 }
 
 .insights-cards {
@@ -1234,20 +1243,67 @@ footer {
     background: #ffffff;
     border: 1px solid rgba(22, 128, 95, 0.12);
     box-shadow: 0 14px 34px rgba(18, 55, 47, 0.08);
+    position: relative;
+    overflow: hidden;
 }
 
-.insight-card span {
+.insight-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #16805f 0%, #90cdb9 100%);
+    opacity: 0.6;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 8px;
+}
+
+.card-header span {
     display: block;
-    margin-bottom: 10px;
     color: #6c7c77;
     font-size: 14px;
     font-weight: 700;
 }
 
-.insight-card strong {
-    color: #12372f;
-    font-size: 28px;
+.change-indicator {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.change-indicator.positive {
+    background: #e4f6ef;
+    color: #16805f;
+}
+
+.change-indicator.negative {
+    background: #ffe9e9;
+    color: #b42318;
+}
+
+.status-icon {
+    font-size: 20px;
     font-weight: 900;
+}
+
+.status-icon.alert {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
 }
 
 .expense-card strong {
@@ -1256,6 +1312,37 @@ footer {
 
 .balance-card strong {
     color: #16805f;
+}
+
+.insight-card strong {
+    color: #12372f;
+    font-size: 28px;
+    font-weight: 900;
+    display: block;
+    margin-bottom: 6px;
+}
+
+.insight-card small {
+    display: block;
+    color: #7a8a85;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #edf3f1;
+    border-radius: 999px;
+    margin-top: 12px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #16805f 0%, #90cdb9 100%);
+    border-radius: 999px;
+    transition: width 0.3s ease;
 }
 
 .insights-layout {
@@ -1292,6 +1379,35 @@ footer {
 
 .insight-message-card strong {
     color: #12372f;
+}
+
+.insight-item {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #edf3f1;
+}
+
+.insight-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.insight-item h3 {
+    margin: 0 0 10px 0;
+    color: #12372f;
+    font-size: 15px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.insight-item p {
+    margin: 0;
+    color: #5f6f6a;
+    font-size: 14px;
+    line-height: 1.5;
 }
 
 .warning-box,
@@ -1340,6 +1456,29 @@ footer {
     border-bottom: 1px solid #dceee8;
 }
 
+.category-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 24px;
+}
+
+.bar-fill {
+    flex: 1;
+    height: 6px;
+    background: linear-gradient(90deg, #16805f 0%, #90cdb9 100%);
+    border-radius: 3px;
+    min-width: 20px;
+}
+
+.category-bar span {
+    min-width: 45px;
+    text-align: right;
+    font-size: 12px;
+    font-weight: 700;
+    color: #294940;
+}
+
 .insights-table td {
     padding: 16px;
     border-bottom: 1px solid #edf3f1;
@@ -1382,8 +1521,17 @@ footer {
         grid-template-columns: 1fr;
     }
 
+    .insights-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
     .insights-header h1 {
         font-size: 32px;
+    }
+
+    .budget-badge {
+        align-self: flex-start;
     }
 }
 

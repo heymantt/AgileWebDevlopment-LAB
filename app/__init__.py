@@ -1,6 +1,7 @@
 import os
 
 from flask import Flask
+from datetime import datetime
 
 from config import config_by_name
 from app.extensions import db, migrate, login_manager, csrf
@@ -23,6 +24,7 @@ def create_app(config_name=None):
 
     register_blueprints(app)
     register_login_loader()
+    register_template_filters(app)
     create_upload_directories(app)
 
     return app
@@ -33,6 +35,21 @@ def initialize_extensions(app):
     migrate.init_app(app, db)
     login_manager.init_app(app)
     csrf.init_app(app)
+
+
+def register_template_filters(app):
+    """Register custom Jinja2 filters"""
+    @app.template_filter('strftime')
+    def strftime_filter(date_obj, format_string):
+        """Format datetime object using strftime"""
+        if date_obj is None:
+            return ''
+        if isinstance(date_obj, str):
+            try:
+                date_obj = datetime.fromisoformat(date_obj)
+            except (ValueError, AttributeError):
+                return date_obj
+        return date_obj.strftime(format_string)
 
 
 def register_blueprints(app):

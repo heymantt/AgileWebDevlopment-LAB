@@ -2,6 +2,83 @@
 
 {% block content %}
 <style>
+    /* Toast/Notification Styles */
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 3000;
+        pointer-events: none;
+    }
+
+    .toast {
+        background: white;
+        padding: 16px 20px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: slideInRight 0.3s ease-out;
+        pointer-events: auto;
+        max-width: 400px;
+        min-width: 300px;
+    }
+
+    .toast.success {
+        border-left: 4px solid #27ae60;
+        background: #d5f4e6;
+        color: #155724;
+    }
+
+    .toast.error {
+        border-left: 4px solid #e74c3c;
+        background: #fadbd8;
+        color: #721c24;
+    }
+
+    .toast.info {
+        border-left: 4px solid #3498db;
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .toast-icon {
+        font-size: 18px;
+    }
+
+    .toast-message {
+        flex: 1;
+        font-weight: 500;
+    }
+
+    @keyframes slideInRight {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+
+    .toast.hide {
+        animation: slideOutRight 0.3s ease-in forwards;
+    }
+
     .profile-container {
         max-width: 600px;
         margin: 40px auto;
@@ -159,56 +236,89 @@
     .modal {
         display: none;
         position: fixed;
-        z-index: 1000;
+        z-index: 2000;
         left: 0;
         top: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: rgba(0, 0, 0, 0.6);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
     }
 
     .modal.show {
         display: flex;
         align-items: center;
         justify-content: center;
+        opacity: 1;
+        visibility: visible;
     }
 
     .modal-content {
         background-color: #fff;
-        padding: 30px;
+        padding: 40px;
         border-radius: 12px;
         width: 90%;
-        max-width: 450px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        max-width: 500px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideIn 0.3s ease-out;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
     }
 
     .modal-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
+        border-bottom: 2px solid #ecf0f1;
+        padding-bottom: 15px;
     }
 
     .modal-header h2 {
         margin: 0;
         color: #2c3e50;
+        font-size: 22px;
     }
 
     .modal-close {
         background: none;
         border: none;
-        font-size: 24px;
+        font-size: 28px;
         cursor: pointer;
         color: #7f8c8d;
+        transition: color 0.2s;
+        padding: 0;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-close:hover {
+        color: #e74c3c;
     }
 
     .form-group {
-        margin-bottom: 15px;
+        margin-bottom: 18px;
     }
 
     .form-group label {
         display: block;
-        margin-bottom: 5px;
+        margin-bottom: 8px;
         font-weight: 600;
         color: #2c3e50;
         font-size: 14px;
@@ -216,50 +326,68 @@
 
     .form-group input {
         width: 100%;
-        padding: 10px;
-        border: 1px solid #ecf0f1;
+        padding: 12px;
+        border: 2px solid #ecf0f1;
         border-radius: 8px;
         font-size: 14px;
+        transition: border-color 0.3s;
+        box-sizing: border-box;
     }
 
     .form-group input:focus {
         outline: none;
         border-color: #667eea;
-        box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 0 8px rgba(102, 126, 234, 0.2);
     }
 
     .modal-buttons {
         display: flex;
-        gap: 10px;
-        margin-top: 20px;
+        gap: 12px;
+        margin-top: 30px;
+        justify-content: flex-end;
     }
 
     .modal-buttons button {
-        flex: 1;
-        padding: 10px;
+        padding: 12px 24px;
         border: none;
         border-radius: 8px;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s;
+        font-size: 14px;
     }
 
     .btn-save {
-        background: #667eea;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
+        flex: 1;
+        min-width: 120px;
     }
 
     .btn-save:hover {
-        background: #5568d3;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-save:active {
+        transform: translateY(0);
     }
 
     .btn-cancel {
         background: #ecf0f1;
         color: #2c3e50;
+        flex: 1;
+        min-width: 120px;
     }
 
     .btn-cancel:hover {
-        background: #bdc3c7;
+        background: #d5dbdb;
+        transform: translateY(-2px);
+    }
+
+    .btn-cancel:active {
+        transform: translateY(0);
+    }
     }
 
     @media (max-width: 600px) {
@@ -288,6 +416,9 @@
         }
     }
 </style>
+
+<!-- Toast Container for Notifications -->
+<div class="toast-container" id="toastContainer"></div>
 
 <div class="profile-container">
     <div class="profile-card">
@@ -399,6 +530,34 @@
 </div>
 
 <script>
+    // Toast Notification Function
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        const icons = {
+            success: '✓',
+            error: '✕',
+            info: 'ℹ'
+        };
+        
+        toast.innerHTML = `
+            <span class="toast-icon">${icons[type]}</span>
+            <span class="toast-message">${message}</span>
+        `;
+        
+        container.appendChild(toast);
+        
+        // Auto-remove after 4 seconds
+        setTimeout(() => {
+            toast.classList.add('hide');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 4000);
+    }
+
     function openEditProfileModal() {
         document.getElementById('editProfileModal').classList.add('show');
     }
@@ -420,13 +579,16 @@
         e.preventDefault();
         
         const username = document.getElementById('editUsername').value.trim();
+        
+        // Get CSRF token from meta tag
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         try {
             const response = await fetch('{{ url_for("main.update_profile") }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token() }}'
+                    'X-CSRFToken': csrfToken
                 },
                 body: JSON.stringify({
                     username: username
@@ -436,13 +598,14 @@
             const data = await response.json();
             
             if (data.success) {
-                alert('Profile updated successfully!');
-                location.reload();
+                showToast('Profile updated successfully!', 'success');
+                closeEditProfileModal();
+                setTimeout(() => location.reload(), 1500);
             } else {
-                alert('Error: ' + data.message);
+                showToast('Error: ' + data.message, 'error');
             }
         } catch (error) {
-            alert('An error occurred: ' + error.message);
+            showToast('An error occurred: ' + error.message, 'error');
         }
     });
 
@@ -452,13 +615,16 @@
         const oldPassword = document.getElementById('oldPassword').value;
         const newPassword = document.getElementById('newPassword').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        // Get CSRF token from meta tag
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         try {
             const response = await fetch('{{ url_for("main.change_password") }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token() }}'
+                    'X-CSRFToken': csrfToken
                 },
                 body: JSON.stringify({
                     old_password: oldPassword,
@@ -470,13 +636,14 @@
             const data = await response.json();
             
             if (data.success) {
-                alert('Password changed successfully!');
+                showToast('Password changed successfully!', 'success');
                 closeChangePasswordModal();
+                setTimeout(() => location.reload(), 1500);
             } else {
-                alert('Error: ' + data.message);
+                showToast('Error: ' + data.message, 'error');
             }
         } catch (error) {
-            alert('An error occurred: ' + error.message);
+            showToast('An error occurred: ' + error.message, 'error');
         }
     });
 

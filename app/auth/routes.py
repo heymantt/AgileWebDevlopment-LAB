@@ -96,3 +96,55 @@ def logout():
         logout_user()
         flash("You have been logged out.", "success")
     return redirect(url_for("main.landing"))
+
+
+@auth_bp.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    """Handle forgot password requests."""
+    if current_user.is_authenticated:
+        return redirect(url_for("main.dashboard"))
+
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+        user = User.query.filter_by(email=email).first()
+        
+        if user:
+            # In production, generate a secure token and send email
+            # For now, we'll show a success message
+            pass
+        
+        # Always show success message for security
+        flash("If an account exists with that email, you will receive password reset instructions.", "success")
+        return redirect(url_for("auth.login"))
+    
+    return render_template("auth/forgot_password.html", page_title="Forgot Password")
+
+
+@auth_bp.route("/reset-password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    """Handle password reset via token."""
+    if current_user.is_authenticated:
+        return redirect(url_for("main.dashboard"))
+    
+    if request.method == "POST":
+        new_password = request.form.get("password", "")
+        confirm_password = request.form.get("confirm_password", "")
+        
+        errors = []
+        if not new_password:
+            errors.append("Password is required.")
+        if new_password != confirm_password:
+            errors.append("Passwords do not match.")
+        if len(new_password) < 6:
+            errors.append("Password must be at least 6 characters long.")
+        
+        if errors:
+            for error in errors:
+                flash(error, "error")
+            return render_template("auth/reset_password.html", token=token, page_title="Reset Password")
+        
+        # In production, verify token and reset password
+        flash("Password reset would be processed here. Feature coming soon.", "info")
+        return redirect(url_for("auth.login"))
+    
+    return render_template("auth/reset_password.html", token=token, page_title="Reset Password")
