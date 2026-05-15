@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
@@ -100,5 +100,91 @@ def income_home():
         "income/index.html",
         page_title="Income",
         incomes=incomes,
-        monthly_total=monthly_total
+        monthly_total=monthly_total,
+        now=datetime.now(),
+        timedelta=timedelta
     )
+
+
+@income_bp.route("/<int:income_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_income(income_id):
+    income = Income.query.filter_by(id=income_id, user_id=current_user.id).first_or_404()
+    
+    if request.method == "POST":
+        source = request.form.get("source", "").strip()
+        amount_raw = request.form.get("amount", "").strip()
+        start_date_raw = request.form.get("start_date", "").strip()
+        end_date_raw = request.form.get("end_date", "").strip()
+        frequency = request.form.get("frequency", "one-time").strip()
+        category = request.form.get("category", "").strip()
+        description = request.form.get("description", "").strip()
+
+        errors = []
+
+        if not source:
+            errors.append("Source is required.")
+        if not amount_raw:
+            errors.append("Amount is required.")
+        if not start_date_raw:
+            errors.append("Start Date is required.")
+        if not frequency:
+            errors.append("Frequency is required.")
+        if not category:
+            errors.append("Category is required.")
+
+        try:
+            amount = float(amount_raw)
+            if amount <= 0:
+                errors.append("Amount must be greater than 0.")
+        except ValueError:
+            errors.append("Amount must be a valid number.")
+            amount = 0
+
+        try:
+            start_date = datetime.strptime(start_date_raw, "%Y-%m-%d").date()
+        except ValueError:
+            errors.append("Start Date must be valid.")
+            start_date = date.today()
+
+        end_date = None
+        if end_date_raw:
+            try:
+                end_date = datetime.strptime(end_date_raw, "%Y-%m-%d").date()
+            except ValueError:
+                errors.append("End Date must be valid.")
+
+        if errors:
+            for error in errors:
+                flash(error, "error")
+        else:
+            income.source = source
+            income.amount = amount
+            income.frequency = frequency
+            income.category = category
+            income.start_date = start_date
+            income.end_date = end_date
+            income.notes = description if description else None
+            income.income_date = start_date  # Keep in sync
+            income.income_type = frequency  # Keep in sync
+            income.updated_at = datetime.utcnow()
+            
+            db.session.commit()
+            flash("Income entry updated successfully.", "success")
+            return redirect(url_for("income.income_home"))
+    
+    return render_template(
+        "income/edit.html",
+        income=income,
+        page_title="Edit Income"
+    )
+
+
+@income_bp.route("/<int:income_id>/delete", methods=["POST"])
+@login_required
+def delete_income(income_id):
+    income = Income.query.filter_by(id=income_id, user_id=current_user.id).first_or_404()
+    db.session.delete(income)
+    db.session.commit()
+    flash("Income entry deleted successfully.", "success")
+    return redirect(url_for("income.income_home"))

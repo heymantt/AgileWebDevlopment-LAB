@@ -1092,6 +1092,80 @@ footer {
     font-weight: 700;
 }
 
+/* Income Category Pill */
+.income-category-pill {
+    display: inline-block;
+    padding: 6px 11px;
+    border-radius: 999px;
+    background: #e4f6ef;
+    color: #16805f;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+/* Income Frequency Badge */
+.income-frequency-badge {
+    display: inline-block;
+    padding: 6px 11px;
+    border-radius: 6px;
+    background: #e4f6ef;
+    color: #16805f;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+.income-frequency-badge.one-time {
+    background: #fef3e2;
+    color: #d97706;
+}
+
+.income-frequency-badge.recurring {
+    background: #e4f6ef;
+    color: #16805f;
+}
+
+/* Income Status Badge */
+.income-status-badge {
+    display: inline-block;
+    padding: 6px 11px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.income-status-badge.active {
+    background: #e4f6ef;
+    color: #16805f;
+}
+
+.income-status-badge.inactive {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.income-status-badge.completed {
+    background: #f3e8ff;
+    color: #9333ea;
+}
+
+.income-status-badge.expired {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.income-status-badge.permanent {
+    background: #dbeafe;
+    color: #0284c7;
+}
+
+/* Income Actions Cell */
+.income-actions-cell {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
 @media (max-width: 900px) {
     .income-header {
         flex-direction: column;

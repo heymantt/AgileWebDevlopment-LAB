@@ -1,0 +1,364 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="income-page">
+  <div class="income-container">
+
+    <div class="income-header">
+      <div>
+        <p class="page-label">Income Tracker</p>
+        <h1>Edit Income</h1>
+        <p>Update your income entry details.</p>
+      </div>
+    </div>
+
+    <!-- Edit Income Form -->
+    <div class="edit-income-card">
+      <form method="POST" class="edit-income-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <!-- Essential Details Section -->
+        <div class="form-section">
+          <div class="modal-form-group">
+            <label for="source">Source <span class="field-required">*</span></label>
+            <input
+              type="text"
+              id="source"
+              name="source"
+              placeholder="e.g. Salary, Freelance work"
+              value="{{ income.source }}"
+              required
+            >
+          </div>
+
+          <div class="modal-form-row">
+            <div class="modal-form-group">
+              <label for="amount">Amount (AUD) <span class="field-required">*</span></label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                id="amount"
+                name="amount"
+                placeholder="0.00"
+                value="{{ income.amount }}"
+                required
+              >
+            </div>
+            <div class="modal-form-group">
+              <label for="frequency">Frequency <span class="field-required">*</span></label>
+              <select id="frequency" name="frequency" required>
+                <option value="">Select frequency</option>
+                <option value="one-time" {% if income.frequency == 'one-time' %}selected{% endif %}>One-time</option>
+                <option value="daily" {% if income.frequency == 'daily' %}selected{% endif %}>Daily</option>
+                <option value="weekly" {% if income.frequency == 'weekly' %}selected{% endif %}>Weekly</option>
+                <option value="monthly" {% if income.frequency == 'monthly' %}selected{% endif %}>Monthly</option>
+                <option value="yearly" {% if income.frequency == 'yearly' %}selected{% endif %}>Yearly</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="modal-form-group">
+            <label for="category">Category <span class="field-required">*</span></label>
+            <select id="category" name="category" required>
+              <option value="">Select category</option>
+              <option value="Salary" {% if income.category == 'Salary' %}selected{% endif %}>Salary</option>
+              <option value="Freelance" {% if income.category == 'Freelance' %}selected{% endif %}>Freelance</option>
+              <option value="Investment" {% if income.category == 'Investment' %}selected{% endif %}>Investment</option>
+              <option value="Business" {% if income.category == 'Business' %}selected{% endif %}>Business</option>
+              <option value="Bonus" {% if income.category == 'Bonus' %}selected{% endif %}>Bonus</option>
+              <option value="Gift" {% if income.category == 'Gift' %}selected{% endif %}>Gift</option>
+              <option value="Other" {% if income.category == 'Other' %}selected{% endif %}>Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Date Section -->
+        <div class="form-section">
+          <div class="form-section-header">Date Period</div>
+          <div class="modal-form-row">
+            <div class="modal-form-group">
+              <label for="start_date">Start Date <span class="field-required">*</span></label>
+              <input
+                type="date"
+                id="start_date"
+                name="start_date"
+                value="{{ income.start_date.strftime('%Y-%m-%d') if income.start_date else '' }}"
+                required
+              >
+            </div>
+            <div class="modal-form-group">
+              <label for="end_date">End Date <span class="field-optional">(Optional)</span></label>
+              <input
+                type="date"
+                id="end_date"
+                name="end_date"
+                value="{{ income.end_date.strftime('%Y-%m-%d') if income.end_date else '' }}"
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Optional Details Section -->
+        <div class="form-section">
+          <div class="form-section-header">Additional Notes</div>
+          <div class="modal-form-group">
+            <label for="description">Description <span class="field-optional">(Optional)</span></label>
+            <textarea
+              id="description"
+              name="description"
+              rows="3"
+              placeholder="Add any additional notes about this income..."
+            >{{ income.notes or '' }}</textarea>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="modal-form-actions">
+          <a href="{{ url_for('income.income_home') }}" class="btn-secondary">Cancel</a>
+          <button type="submit" class="btn-primary">Update Income</button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</section>
+
+<style>
+.income-page {
+  padding: 32px 24px;
+}
+
+.income-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.income-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  gap: 24px;
+}
+
+.income-header > div {
+  flex: 1;
+}
+
+.income-header h1 {
+  margin: 12px 0 8px;
+  color: #12372f;
+  font-size: 36px;
+  font-weight: 800;
+}
+
+.income-header p {
+  margin: 0;
+  color: #6c7c77;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.page-label {
+  margin: 0;
+  color: #16805f;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Edit Income Card */
+.edit-income-card {
+  background: #ffffff;
+  border: 1px solid #edf3f1;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 12px rgba(18, 55, 47, 0.05);
+}
+
+.edit-income-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Form Sections */
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-section-header {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #16805f;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e4f6ef;
+}
+
+.field-required {
+  color: #ef4444;
+  font-weight: 900;
+}
+
+.field-optional {
+  color: #94a9a0;
+  font-size: 13px;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.modal-form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-form-group label {
+  margin-bottom: 8px;
+  color: #294940;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+}
+
+.modal-form-group input,
+.modal-form-group select,
+.modal-form-group textarea {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1.5px solid #d6e7e1;
+  border-radius: 12px;
+  background: #fbfefd;
+  color: #12372f;
+  font-size: 14px;
+  outline: none;
+  transition: 0.2s ease;
+  font-family: inherit;
+}
+
+.modal-form-group input::placeholder,
+.modal-form-group select::placeholder,
+.modal-form-group textarea::placeholder {
+  color: #a0aca7;
+}
+
+.modal-form-group input:focus,
+.modal-form-group select:focus,
+.modal-form-group textarea:focus {
+  border-color: #16805f;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(22, 128, 95, 0.12);
+}
+
+.modal-form-group textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+
+.modal-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Form Actions */
+.modal-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 2px solid #f1faf6;
+  align-items: center;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 16px 28px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  flex: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #16805f 0%, #12372f 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(22, 128, 95, 0.15);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(22, 128, 95, 0.25);
+}
+
+.btn-secondary {
+  background: #e4f6ef;
+  color: #16805f;
+  border: 1.5px solid #c4e8e0;
+}
+
+.btn-secondary:hover {
+  background: #c4e8e0;
+  transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+  .income-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .income-header h1 {
+    font-size: 28px;
+  }
+
+  .edit-income-card {
+    padding: 24px;
+  }
+
+  .modal-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .income-page {
+    padding: 20px 16px;
+  }
+
+  .income-header h1 {
+    font-size: 24px;
+  }
+
+  .edit-income-card {
+    padding: 16px;
+  }
+
+  .modal-form-actions {
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+  }
+}
+</style>
+
+{% endblock %}
