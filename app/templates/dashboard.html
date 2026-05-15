@@ -177,8 +177,8 @@
     <div class="section">
         <div class="section-title">🧾 Quick Actions</div>
         <div class="action-buttons">
-            <a href="{{ url_for('receipts.upload_receipt') }}" class="action-btn">
-                ➕ Upload Receipt
+            <a href="{{ url_for('receipts.index') }}" class="action-btn">
+                ➕ Add Expense
             </a>
             <a href="{{ url_for('income.income_home') }}" class="action-btn">
                 💰 Add Income
@@ -196,8 +196,8 @@
         <div class="section-title">📋 Recent Receipts</div>
         <div class="empty-state">
             <div class="empty-state-icon">🧾</div>
-            <p>No receipts yet. Start by uploading your first receipt!</p>
-            <a href="{{ url_for('receipts.upload_receipt') }}" class="action-btn" style="margin-top: 15px;">Upload Receipt</a>
+            <p>No expenses yet. Start by adding your first expense!</p>
+            <a href="{{ url_for('receipts.index') }}" class="action-btn" style="margin-top: 15px;">Add Expense</a>
         </div>
     </div>
 
