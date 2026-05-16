@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from uuid import uuid4
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify
@@ -152,6 +152,24 @@ def index():
             file.save(save_path)
 
         db.session.add(receipt)
+        
+        today = date.today()
+
+        # Award points for tracking an expense
+        current_user.total_points += 10
+
+        # Update streak only once per day
+        if current_user.last_upload_date is None:
+            current_user.current_streak = 1
+        elif current_user.last_upload_date == today:
+            pass
+        elif current_user.last_upload_date == today - timedelta(days=1):
+            current_user.current_streak += 1
+        else:
+            current_user.current_streak = 1
+
+        current_user.last_upload_date = today
+        
         db.session.commit()
 
         flash("Expense added successfully.", "success")
