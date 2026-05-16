@@ -250,7 +250,8 @@
                 <span class="category-pill">{{ expense.category }}</span>
               </td>
               <td class="amount-cell">
-                ${{ "%.2f"|format(expense.amount) }}
+                ${{ "%.2f"|format(expense.display_amount) }}
+                {% if expense.is_group_split %}<span style="font-size:11px;color:#95a5a6;display:block;">your share</span>{% endif %}
               </td>
               <td>
                 {% if expense.frequency_type == 'recurring' %}

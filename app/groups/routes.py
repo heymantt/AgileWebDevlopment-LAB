@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, jsonify, redirect, url_fo
 from flask_login import login_required, current_user
 from datetime import datetime
 from app.extensions import db
-from app.models import Group, GroupMember, User, Receipt, ExpenseSplit
+from app.models import Group, GroupMember, User, Receipt, ExpenseSplit, SettlementComment
 
 groups_bp = Blueprint("groups", __name__)
 
@@ -10,8 +10,18 @@ groups_bp = Blueprint("groups", __name__)
 @groups_bp.route("/")
 @login_required
 def groups_home():
-    """Display all groups created by the current user."""
-    groups = Group.query.filter_by(creator_id=current_user.id).all()
+    """Display all groups the current user is part of (created or member)."""
+    # Groups created by the user
+    created_groups = Group.query.filter_by(creator_id=current_user.id).all()
+    created_ids = {g.id for g in created_groups}
+
+    # Groups where the user is a member but not the creator
+    member_groups = Group.query.join(GroupMember).filter(
+        GroupMember.user_id == current_user.id,
+        Group.creator_id != current_user.id
+    ).all()
+
+    groups = created_groups + member_groups
     return render_template("groups/index.html", page_title="Groups", groups=groups)
 
 
@@ -48,6 +58,14 @@ def create_group():
         db.session.add(new_group)
         db.session.flush()
 
+        # Auto-add the creator as the first member
+        creator_member = GroupMember(
+            group_id=new_group.id,
+            user_id=current_user.id,
+            identifier=current_user.username
+        )
+        db.session.add(creator_member)
+
         for identifier in member_identifiers:
             identifier = identifier.strip()
             if not identifier:
@@ -55,6 +73,9 @@ def create_group():
             matched_user = User.query.filter(
                 (User.username == identifier) | (User.email == identifier)
             ).first()
+            # Skip if this is the creator — already added above
+            if matched_user and matched_user.id == current_user.id:
+                continue
             member = GroupMember(
                 group_id=new_group.id,
                 user_id=matched_user.id if matched_user else None,
@@ -75,8 +96,9 @@ def create_group():
 def edit_group(group_id):
     """Edit group name, description, and members."""
     try:
-        group = Group.query.filter_by(id=group_id, creator_id=current_user.id).first()
-        if not group:
+        group = Group.query.filter_by(id=group_id).first()
+        _is_member = GroupMember.query.filter_by(group_id=group_id, user_id=current_user.id).first()
+        if not group or (group.creator_id != current_user.id and not _is_member):
             return jsonify({'success': False, 'message': 'Group not found or access denied'}), 404
 
         if request.is_json:
@@ -127,8 +149,9 @@ def edit_group(group_id):
 def delete_group(group_id):
     """Delete a group (creator only)."""
     try:
-        group = Group.query.filter_by(id=group_id, creator_id=current_user.id).first()
-        if not group:
+        group = Group.query.filter_by(id=group_id).first()
+        _is_member = GroupMember.query.filter_by(group_id=group_id, user_id=current_user.id).first()
+        if not group or (group.creator_id != current_user.id and not _is_member):
             return jsonify({'success': False, 'message': 'Group not found or access denied'}), 404
 
         db.session.delete(group)
@@ -143,20 +166,16 @@ def delete_group(group_id):
 @groups_bp.route("/<int:group_id>")
 @login_required
 def group_detail(group_id):
-    group = Group.query.filter_by(id=group_id, creator_id=current_user.id).first()
+    # Allow access if user is creator OR a member
+    group = Group.query.filter_by(id=group_id).first()
     if not group:
-        return render_template(
-            "groups/detail.html",
-            page_title="Group Detail",
-            heading="Group not found",
-            group=None
-        )
-    return render_template(
-        "groups/detail.html",
-        page_title="Group Detail",
-        heading=group.name,
-        group=group
-    )
+        return render_template("groups/detail.html", page_title="Group Detail", group=None)
+
+    is_member = GroupMember.query.filter_by(group_id=group_id, user_id=current_user.id).first()
+    if group.creator_id != current_user.id and not is_member:
+        return render_template("groups/detail.html", page_title="Group Detail", group=None)
+
+    return render_template("groups/detail.html", page_title="Group Detail", heading=group.name, group=group)
 
 
 @groups_bp.route("/<int:group_id>/add-expense", methods=["POST"])
@@ -164,8 +183,9 @@ def group_detail(group_id):
 def add_group_expense(group_id):
     """Add an expense to a group and split it among members."""
     try:
-        group = Group.query.filter_by(id=group_id, creator_id=current_user.id).first()
-        if not group:
+        group = Group.query.filter_by(id=group_id).first()
+        is_member = GroupMember.query.filter_by(group_id=group_id, user_id=current_user.id).first()
+        if not group or (group.creator_id != current_user.id and not is_member):
             return jsonify({'success': False, 'message': 'Group not found or access denied'}), 404
 
         if request.is_json:
@@ -268,8 +288,9 @@ def add_group_expense(group_id):
 def group_expenses(group_id):
     """Get all expenses for a group."""
     try:
-        group = Group.query.filter_by(id=group_id, creator_id=current_user.id).first()
-        if not group:
+        group = Group.query.filter_by(id=group_id).first()
+        _is_member = GroupMember.query.filter_by(group_id=group_id, user_id=current_user.id).first()
+        if not group or (group.creator_id != current_user.id and not _is_member):
             return jsonify({'success': False, 'message': 'Group not found or access denied'}), 404
 
         expenses = Receipt.query.filter_by(group_id=group.id).order_by(Receipt.expense_date.desc()).all()
@@ -278,11 +299,20 @@ def group_expenses(group_id):
         for expense in expenses:
             splits_data = []
             for split in expense.splits:
+                comments_data = [{
+                    'id': c.id,
+                    'author': c.author.username,
+                    'text': c.comment,
+                    'created_at': c.created_at.strftime('%Y-%m-%d %H:%M')
+                } for c in split.comments]
                 splits_data.append({
                     'id': split.id,
+                    'member_id': split.member_id,
                     'member_name': split.member.identifier,
                     'amount': split.amount,
-                    'paid': split.paid
+                    'paid': split.paid,
+                    'settled_at': split.settled_at.strftime('%Y-%m-%d %H:%M') if split.settled_at else None,
+                    'comments': comments_data
                 })
             
             expenses_data.append({
@@ -306,8 +336,9 @@ def group_expenses(group_id):
 def mark_split_paid(group_id, split_id):
     """Mark an expense split as paid."""
     try:
-        group = Group.query.filter_by(id=group_id, creator_id=current_user.id).first()
-        if not group:
+        group = Group.query.filter_by(id=group_id).first()
+        _is_member = GroupMember.query.filter_by(group_id=group_id, user_id=current_user.id).first()
+        if not group or (group.creator_id != current_user.id and not _is_member):
             return jsonify({'success': False, 'message': 'Group not found or access denied'}), 404
 
         split = ExpenseSplit.query.filter_by(id=split_id).first()
@@ -321,4 +352,112 @@ def mark_split_paid(group_id, split_id):
 
     except Exception as e:
         db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@groups_bp.route("/search-users")
+@login_required
+def search_users():
+    """Search users by username or email for adding to a group."""
+    q = request.args.get("q", "").strip()
+    if len(q) < 2:
+        return jsonify([])
+    results = User.query.filter(
+        (User.username.ilike(f"%{q}%")) | (User.email.ilike(f"%{q}%"))
+    ).filter(User.id != current_user.id).limit(8).all()
+    return jsonify([{"id": u.id, "username": u.username, "email": u.email} for u in results])
+
+
+@groups_bp.route("/<int:group_id>/splits/<int:split_id>/settle", methods=["POST"])
+@login_required
+def settle_split(group_id, split_id):
+    """Mark a split as settled and optionally add a comment."""
+    try:
+        group = Group.query.filter_by(id=group_id).first()
+        _is_member = GroupMember.query.filter_by(group_id=group_id, user_id=current_user.id).first()
+        if not group or (group.creator_id != current_user.id and not _is_member):
+            return jsonify({'success': False, 'message': 'Group not found or access denied'}), 404
+
+        split = ExpenseSplit.query.filter_by(id=split_id).first()
+        if not split or split.expense.group_id != group.id:
+            return jsonify({'success': False, 'message': 'Split not found'}), 404
+
+        data = request.get_json(silent=True) or {}
+        comment_text = str(data.get('comment', '') or '').strip()
+
+        split.paid = True
+        split.settled_at = datetime.utcnow()
+
+        if comment_text:
+            comment = SettlementComment(
+                split_id=split.id,
+                user_id=current_user.id,
+                comment=comment_text
+            )
+            db.session.add(comment)
+
+        db.session.commit()
+        return jsonify({'success': True, 'paid': True, 'settled_at': split.settled_at.strftime('%Y-%m-%d %H:%M')}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@groups_bp.route("/<int:group_id>/splits/<int:split_id>/comment", methods=["POST"])
+@login_required
+def add_comment(group_id, split_id):
+    """Add a comment to a split without settling it."""
+    try:
+        group = Group.query.filter_by(id=group_id).first()
+        _is_member = GroupMember.query.filter_by(group_id=group_id, user_id=current_user.id).first()
+        if not group or (group.creator_id != current_user.id and not _is_member):
+            return jsonify({'success': False, 'message': 'Access denied'}), 404
+
+        split = ExpenseSplit.query.filter_by(id=split_id).first()
+        if not split or split.expense.group_id != group.id:
+            return jsonify({'success': False, 'message': 'Split not found'}), 404
+
+        data = request.get_json(silent=True) or {}
+        comment_text = str(data.get('comment', '') or '').strip()
+        if not comment_text:
+            return jsonify({'success': False, 'message': 'Comment cannot be empty'}), 400
+
+        comment = SettlementComment(
+            split_id=split.id,
+            user_id=current_user.id,
+            comment=comment_text
+        )
+        db.session.add(comment)
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'comment': {
+                'id': comment.id,
+                'author': comment.author.username,
+                'text': comment.comment,
+                'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M')
+            }
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@groups_bp.route("/<int:group_id>/splits/<int:split_id>/comments")
+@login_required
+def get_comments(group_id, split_id):
+    """Get all comments for a split."""
+    try:
+        split = ExpenseSplit.query.filter_by(id=split_id).first()
+        if not split:
+            return jsonify({'success': False, 'message': 'Split not found'}), 404
+        comments = [{
+            'id': c.id,
+            'author': c.author.username,
+            'text': c.comment,
+            'created_at': c.created_at.strftime('%Y-%m-%d %H:%M')
+        } for c in split.comments]
+        return jsonify({'success': True, 'comments': comments}), 200
+    except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
