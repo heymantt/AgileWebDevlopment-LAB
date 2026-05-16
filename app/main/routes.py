@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from sqlalchemy import func
-from datetime import date
+from datetime import date, timedelta
+import json
 
 from app.extensions import db
 from app.models import User, Receipt, Income
@@ -99,6 +100,66 @@ def dashboard():
     from app.models import Group
     active_groups = Group.query.filter_by(creator_id=current_user.id).count()
 
+    # --- Daily spend for the last 14 days (sparkline) ---
+    fourteen_days_ago = today - timedelta(days=13)
+    daily_rows = (
+        Receipt.query
+        .filter(Receipt.user_id == current_user.id)
+        .filter(Receipt.expense_date >= fourteen_days_ago)
+        .with_entities(Receipt.expense_date, func.sum(Receipt.amount))
+        .group_by(Receipt.expense_date)
+        .order_by(Receipt.expense_date)
+        .all()
+    )
+    daily_map = {str(r[0]): float(r[1]) for r in daily_rows}
+    daily_labels = []
+    daily_values = []
+    for i in range(14):
+        d = fourteen_days_ago + timedelta(days=i)
+        daily_labels.append(d.strftime("%b %d"))
+        daily_values.append(daily_map.get(str(d), 0))
+
+    # --- Last 6 months income vs expenses (bar chart) ---
+    monthly_labels = []
+    monthly_expense_series = []
+    monthly_income_series = []
+    for i in range(5, -1, -1):
+        # calculate first day of month i months ago
+        yr = today.year
+        mo = today.month - i
+        while mo <= 0:
+            mo += 12
+            yr -= 1
+        m_start = date(yr, mo, 1)
+        if mo == 12:
+            m_end = date(yr + 1, 1, 1)
+        else:
+            m_end = date(yr, mo + 1, 1)
+
+        m_exp = (
+            Receipt.query
+            .filter(Receipt.user_id == current_user.id)
+            .filter(Receipt.expense_date >= m_start)
+            .filter(Receipt.expense_date < m_end)
+            .with_entities(func.coalesce(func.sum(Receipt.amount), 0))
+            .scalar()
+        )
+        m_inc = (
+            Income.query
+            .filter(Income.user_id == current_user.id)
+            .filter(Income.income_date >= m_start)
+            .filter(Income.income_date < m_end)
+            .with_entities(func.coalesce(func.sum(Income.amount), 0))
+            .scalar()
+        )
+        monthly_labels.append(m_start.strftime("%b %Y"))
+        monthly_expense_series.append(float(m_exp))
+        monthly_income_series.append(float(m_inc))
+
+    # Category chart data
+    chart_category_labels = [r[0] for r in category_totals]
+    chart_category_values = [float(r[1]) for r in category_totals]
+
     return render_template(
         "dashboard.html",
         page_title="Dashboard",
@@ -115,6 +176,14 @@ def dashboard():
         top_category_percentage=top_category_percentage,
         high_value_receipts=high_value_receipts,
         active_groups=active_groups,
+        # chart data
+        daily_labels=json.dumps(daily_labels),
+        daily_values=json.dumps(daily_values),
+        monthly_labels=json.dumps(monthly_labels),
+        monthly_expense_series=json.dumps(monthly_expense_series),
+        monthly_income_series=json.dumps(monthly_income_series),
+        chart_category_labels=json.dumps(chart_category_labels),
+        chart_category_values=json.dumps(chart_category_values),
     )
 
 @main_bp.route("/profile")
