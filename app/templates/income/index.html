@@ -36,27 +36,12 @@
           <div class="form-section">
             <div class="modal-form-group">
               <label for="source">Source <span class="field-required">*</span></label>
-              <input
-                type="text"
-                id="source"
-                name="source"
-                placeholder="e.g. Salary, Freelance work"
-                required
-              >
+              <input type="text" id="source" name="source" placeholder="e.g. Salary, Freelance work" required>
             </div>
-
             <div class="modal-form-row">
               <div class="modal-form-group">
                 <label for="amount">Amount (AUD) <span class="field-required">*</span></label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  id="amount"
-                  name="amount"
-                  placeholder="0.00"
-                  required
-                >
+                <input type="number" step="0.01" min="0" id="amount" name="amount" placeholder="0.00" required>
               </div>
               <div class="modal-form-group">
                 <label for="frequency">Frequency <span class="field-required">*</span></label>
@@ -70,7 +55,6 @@
                 </select>
               </div>
             </div>
-
             <div class="modal-form-group">
               <label for="category">Category <span class="field-required">*</span></label>
               <select id="category" name="category" required>
@@ -92,20 +76,11 @@
             <div class="modal-form-row">
               <div class="modal-form-group">
                 <label for="start_date">Start Date <span class="field-required">*</span></label>
-                <input
-                  type="date"
-                  id="start_date"
-                  name="start_date"
-                  required
-                >
+                <input type="date" id="start_date" name="start_date" required>
               </div>
               <div class="modal-form-group">
                 <label for="end_date">End Date <span class="field-optional">(Optional)</span></label>
-                <input
-                  type="date"
-                  id="end_date"
-                  name="end_date"
-                >
+                <input type="date" id="end_date" name="end_date">
               </div>
             </div>
           </div>
@@ -115,12 +90,7 @@
             <div class="form-section-header">Additional Notes</div>
             <div class="modal-form-group">
               <label for="description">Description <span class="field-optional">(Optional)</span></label>
-              <textarea
-                id="description"
-                name="description"
-                rows="3"
-                placeholder="Add any additional notes about this income..."
-              ></textarea>
+              <textarea id="description" name="description" rows="3" placeholder="Add any additional notes about this income..."></textarea>
             </div>
           </div>
 
@@ -161,9 +131,7 @@
           <tbody>
             {% for income in incomes %}
             <tr>
-              <td>
-                <strong>{{ income.source }}</strong>
-              </td>
+              <td><strong>{{ income.source }}</strong></td>
               <td>
                 <span class="income-category-pill">
                   {{ income.category or income.income_type or "General" }}
@@ -171,37 +139,20 @@
               </td>
               <td>
                 <span class="income-frequency-badge {% if income.frequency == 'one-time' %}one-time{% else %}recurring{% endif %}">
-                  {% if income.frequency == 'one-time' %}
-                    One-time
-                  {% else %}
-                    {{ income.frequency|capitalize }}
-                  {% endif %}
+                  {% if income.frequency == 'one-time' %}One-time{% else %}{{ income.frequency|capitalize }}{% endif %}
                 </span>
               </td>
+              <td class="income-amount-cell">${{ "%.2f"|format(income.amount) }}</td>
               <td class="income-amount-cell">
-                ${{ "%.2f"|format(income.amount) }}
+                {% if income.frequency == 'one-time' %}-
+                {% elif income.frequency == 'daily' %}${{ "%.2f"|format(income.amount * 30) }}
+                {% elif income.frequency == 'weekly' %}${{ "%.2f"|format(income.amount * 4.33) }}
+                {% elif income.frequency == 'monthly' %}${{ "%.2f"|format(income.amount) }}
+                {% elif income.frequency == 'yearly' %}${{ "%.2f"|format(income.amount / 12) }}
+                {% else %}-{% endif %}
               </td>
-              <td class="income-amount-cell">
-                {# Calculate monthly equivalent based on frequency #}
-                {% if income.frequency == 'one-time' %}
-                  -
-                {% elif income.frequency == 'daily' %}
-                  ${{ "%.2f"|format(income.amount * 30) }}
-                {% elif income.frequency == 'weekly' %}
-                  ${{ "%.2f"|format(income.amount * 4.33) }}
-                {% elif income.frequency == 'monthly' %}
-                  ${{ "%.2f"|format(income.amount) }}
-                {% elif income.frequency == 'yearly' %}
-                  ${{ "%.2f"|format(income.amount / 12) }}
-                {% else %}
-                  -
-                {% endif %}
-              </td>
+              <td>{{ income.start_date.strftime('%d/%m/%Y') if income.start_date else income.income_date.strftime('%d/%m/%Y') }}</td>
               <td>
-                {{ income.start_date.strftime('%d/%m/%Y') if income.start_date else income.income_date.strftime('%d/%m/%Y') }}
-              </td>
-              <td>
-                {# Calculate next expected date #}
                 {% if income.frequency == 'one-time' %}
                   N/A
                 {% elif income.frequency == 'daily' %}
@@ -233,7 +184,6 @@
                     {% set next_month = today.month + 1 %}
                     {% set next_year = today.year %}
                   {% endif %}
-                  {# Handle day overflow for months with fewer days #}
                   {% set days_in_next = [31, 29 if next_year % 4 == 0 else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][next_month - 1] %}
                   {% set day = [day_of_month, days_in_next]|min %}
                   {{ next_year }}-{{ "%02d"|format(next_month) }}-{{ "%02d"|format(day) }}
@@ -245,9 +195,7 @@
                   {% else %}
                     {{ start.replace(year=today.year).strftime('%d/%m/%Y') }}
                   {% endif %}
-                {% else %}
-                  -
-                {% endif %}
+                {% else %}-{% endif %}
               </td>
               <td>
                 {% set is_active = income.end_date is none or income.end_date >= now.date() %}
@@ -260,21 +208,8 @@
                 {% endif %}
               </td>
               <td class="income-actions-cell">
-                <a 
-                  href="{{ url_for('income.edit_income', income_id=income.id) }}" 
-                  class="action-btn edit-btn" 
-                  title="Edit income"
-                >
-                  ✎
-                </a>
-                <button 
-                  type="button" 
-                  class="action-btn delete-btn" 
-                  data-income-id="{{ income.id }}" 
-                  title="Delete income"
-                >
-                  🗑
-                </button>
+                <a href="{{ url_for('income.edit_income', income_id=income.id) }}" class="action-btn edit-btn" title="Edit income">✎</a>
+                <button type="button" class="action-btn delete-btn" data-income-id="{{ income.id }}" title="Delete income">🗑</button>
               </td>
             </tr>
             {% endfor %}
@@ -283,7 +218,7 @@
       </div>
     </div>
     {% else %}
-    <!-- Empty State - only shown when no incomes exist -->
+    <!-- Empty State -->
     <div class="income-empty-state">
       <div class="empty-state-icon">💰</div>
       <h3>No income records yet</h3>
@@ -295,8 +230,11 @@
 </section>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
 .income-page {
   padding: 32px 24px;
+  font-family: 'DM Sans', sans-serif;
 }
 
 .income-container {
@@ -304,6 +242,7 @@
   margin: 0 auto;
 }
 
+/* ── Header ── */
 .income-header {
   display: flex;
   justify-content: space-between;
@@ -312,112 +251,110 @@
   gap: 24px;
 }
 
-.income-header > div {
-  flex: 1;
+.income-header > div { flex: 1; }
+
+.page-label {
+  margin: 0;
+  color: #667eea;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
 }
 
 .income-header h1 {
-  margin: 12px 0 8px;
-  color: #12372f;
-  font-size: 36px;
-  font-weight: 800;
+  margin: 8px 0 6px;
+  color: #1a1f36;
+  font-size: 32px;
+  font-weight: 700;
 }
 
 .income-header p {
   margin: 0;
-  color: #6c7c77;
+  color: #8792a2;
   font-size: 14px;
   line-height: 1.6;
 }
 
-.page-label {
-  margin: 0;
-  color: #16805f;
-  font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
 .add-income-btn {
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #16805f 0%, #12372f 100%);
-  color: #ffffff;
+  padding: 11px 24px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
   border: none;
-  border-radius: 12px;
+  border-radius: 10px;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  transition: 0.2s ease;
   white-space: nowrap;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(102,126,234,.35);
+  transition: .2s;
+  font-family: 'DM Sans', sans-serif;
 }
 
 .add-income-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(22, 128, 95, 0.3);
+  box-shadow: 0 8px 20px rgba(102,126,234,.45);
 }
 
+/* ── Summary card ── */
 .income-total-card {
-  background: linear-gradient(135deg, #16805f 0%, #12372f 100%);
-  color: #ffffff;
-  padding: 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  padding: 32px 36px;
   border-radius: 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   margin-bottom: 32px;
-  box-shadow: 0 10px 30px rgba(18, 55, 47, 0.15);
+  box-shadow: 0 8px 28px rgba(102,126,234,.3);
 }
 
 .income-total-card span {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  opacity: 0.9;
+  opacity: .85;
+  text-transform: uppercase;
+  letter-spacing: .06em;
 }
 
 .income-total-card strong {
-  font-size: 42px;
-  font-weight: 900;
+  font-family: 'DM Mono', monospace;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
 }
 
-/* Modal Styles */
+/* ── Modal backdrop ── */
 .modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
+  inset: 0;
+  background: rgba(26,31,54,.4);
   display: none;
   z-index: 999;
-  animation: fadeIn 0.2s ease;
+  backdrop-filter: blur(2px);
+  animation: fadeIn .2s ease;
 }
 
-.modal-backdrop.active {
-  display: block;
-}
+.modal-backdrop.active { display: block; }
 
+/* ── Modal ── */
 .modal {
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0.95);
-  background: #ffffff;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(.96);
+  background: #fff;
   border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(18, 55, 47, 0.25);
+  box-shadow: 0 20px 60px rgba(26,31,54,.2);
   z-index: 1000;
-  max-width: 600px;
-  width: 90%;
+  max-width: 600px; width: 90%;
   max-height: 90vh;
   overflow-y: auto;
   display: none;
   opacity: 0;
-  transition: all 0.3s ease;
+  transition: all .25s ease;
 }
 
 .modal.active {
@@ -430,76 +367,92 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px;
-  border-bottom: 1px solid #edf3f1;
+  padding: 24px 28px;
+  border-bottom: 1px solid #f0f2f7;
 }
 
 .modal-header h2 {
   margin: 0;
-  color: #12372f;
-  font-size: 22px;
-  font-weight: 800;
+  color: #1a1f36;
+  font-size: 20px;
+  font-weight: 700;
 }
 
 .modal-close {
   background: none;
   border: none;
-  font-size: 28px;
-  color: #6c7c77;
+  font-size: 26px;
+  color: #8792a2;
   cursor: pointer;
-  padding: 0;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: 0.2s ease;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+  transition: .15s;
 }
 
-.modal-close:hover {
-  color: #12372f;
+.modal-close:hover { background: #f0f2f7; color: #1a1f36; }
+
+/* ── Modal form ── */
+.modal-form { padding: 24px 28px; }
+
+.form-section { margin-bottom: 20px; }
+
+.form-section-header {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #8792a2;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f2f7;
 }
 
-.income-modal-form {
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.modal-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
+
+@media(max-width:500px){ .modal-form-row { grid-template-columns: 1fr; } }
 
 .modal-form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  margin-bottom: 14px;
 }
 
 .modal-form-group label {
-  color: #294940;
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a1f36;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: .05em;
 }
+
+.field-required { color: #ef4444; }
+.field-optional { color: #8792a2; font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 11px; }
 
 .modal-form-group input,
 .modal-form-group select,
 .modal-form-group textarea {
-  padding: 12px 16px;
-  border: 1px solid #c4e8e0;
+  padding: 10px 14px;
+  border: 1.5px solid #e3e8ef;
   border-radius: 8px;
   font-size: 14px;
-  color: #334f48;
-  background: #ffffff;
-  font-family: inherit;
-  transition: 0.2s ease;
+  color: #1a1f36;
+  background: #fff;
+  font-family: 'DM Sans', sans-serif;
+  transition: .15s;
 }
 
 .modal-form-group input:focus,
 .modal-form-group select:focus,
 .modal-form-group textarea:focus {
   outline: none;
-  border-color: #16805f;
-  box-shadow: 0 0 0 3px rgba(22, 128, 95, 0.1);
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102,126,234,.12);
 }
 
 .modal-form-group textarea {
@@ -507,83 +460,70 @@
   min-height: 80px;
 }
 
-.modal-actions {
+.modal-form-actions {
   display: flex;
   gap: 12px;
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid #edf3f1;
+  padding-top: 20px;
+  border-top: 1px solid #f0f2f7;
 }
 
-.btn-primary,
-.btn-secondary {
+.btn-primary, .btn-secondary {
   flex: 1;
-  padding: 12px 24px;
+  padding: 11px 24px;
   border: none;
   border-radius: 8px;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
   text-align: center;
-  transition: 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  transition: .2s;
+  font-family: 'DM Sans', sans-serif;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #16805f 0%, #12372f 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(102,126,234,.3);
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(22, 128, 95, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(102,126,234,.4);
 }
 
 .btn-secondary {
-  background: #e4f6ef;
-  color: #16805f;
-  border: 1px solid #c4e8e0;
+  background: #f0f2f7;
+  color: #1a1f36;
 }
 
-.btn-secondary:hover {
-  background: #c4e8e0;
-}
+.btn-secondary:hover { background: #e3e8ef; }
 
-/* Income Records Section */
-.income-records-section {
-  margin-top: 40px;
-}
+/* ── Records section ── */
+.income-records-section { margin-top: 36px; }
 
 .income-records-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .income-records-header h2 {
-  margin: 0 0 8px;
-  color: #12372f;
-  font-size: 24px;
-  font-weight: 800;
+  margin: 0 0 4px;
+  color: #1a1f36;
+  font-size: 20px;
+  font-weight: 700;
 }
 
-.income-records-header p {
-  margin: 0;
-  color: #6c7c77;
-  font-size: 14px;
-}
+.income-records-header p { margin: 0; color: #8792a2; font-size: 13px; }
 
-/* Income Table */
+/* ── Table ── */
 .income-table-wrapper {
   overflow-x: auto;
-  background: #ffffff;
-  border: 1px solid #edf3f1;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(18, 55, 47, 0.05);
+  background: #fff;
+  border: 1px solid #f0f2f7;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.05);
 }
 
 .income-table {
@@ -592,199 +532,129 @@
   font-size: 14px;
 }
 
-.income-table thead {
-  background: #fbfefd;
-  border-bottom: 2px solid #edf3f1;
-}
+.income-table thead { background: #fafbff; border-bottom: 1px solid #f0f2f7; }
 
 .income-table th {
-  padding: 16px;
+  padding: 14px 16px;
   text-align: left;
-  color: #294940;
-  font-weight: 800;
+  color: #8792a2;
+  font-weight: 600;
   text-transform: uppercase;
-  font-size: 12px;
-  letter-spacing: 0.05em;
+  font-size: 11px;
+  letter-spacing: .06em;
+  white-space: nowrap;
 }
 
 .income-table td {
-  padding: 16px;
-  border-bottom: 1px solid #edf3f1;
-  color: #334f48;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f8fafc;
+  color: #1a1f36;
+  vertical-align: middle;
 }
 
-.income-table tbody tr:hover {
-  background: #fbfefd;
-}
+.income-table tbody tr:last-child td { border-bottom: none; }
+.income-table tbody tr:hover td { background: #fafbff; }
 
-.income-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
+/* Badges */
 .income-category-pill {
   display: inline-block;
-  background: #e4f6ef;
-  color: #16805f;
-  padding: 6px 12px;
+  background: #f0f2ff;
+  color: #667eea;
+  padding: 4px 12px;
   border-radius: 20px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .income-frequency-badge {
   display: inline-block;
-  padding: 6px 12px;
+  padding: 4px 12px;
   border-radius: 20px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
-.income-frequency-badge.one-time {
-  background: #fee4e8;
-  color: #d32f2f;
-}
-
-.income-frequency-badge.recurring {
-  background: #e8d7f4;
-  color: #7c3aed;
-}
+.income-frequency-badge.one-time { background: #fef3f2; color: #ef4444; }
+.income-frequency-badge.recurring { background: #f0f2ff; color: #667eea; }
 
 .income-status-badge {
   display: inline-block;
-  padding: 6px 12px;
+  padding: 4px 12px;
   border-radius: 20px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
-.income-status-badge.active {
-  background: #d4edda;
-  color: #155724;
-}
-
-.income-status-badge.permanent {
-  background: #cfe2ff;
-  color: #084298;
-}
-
-.income-status-badge.expired {
-  background: #f8d7da;
-  color: #842029;
-}
+.income-status-badge.active { background: #ecfdf5; color: #10b981; }
+.income-status-badge.completed { background: #f0f2ff; color: #667eea; }
+.income-status-badge.expired { background: #fef3f2; color: #ef4444; }
 
 .income-amount-cell {
-  font-weight: 700;
-  color: #12372f;
-  font-size: 15px;
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1f36;
 }
 
-/* Empty State */
+/* Action buttons */
+.income-actions-cell { display: flex; gap: 8px; align-items: center; }
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: .15s;
+  text-decoration: none;
+  border: none;
+  background: none;
+}
+
+.edit-btn { color: #667eea; background: #f0f2ff; }
+.edit-btn:hover { background: #e0e4ff; }
+.delete-btn { color: #ef4444; background: #fef3f2; }
+.delete-btn:hover { background: #fee2e2; }
+
+/* ── Empty state ── */
 .income-empty-state {
   text-align: center;
-  padding: 60px 32px;
-  background: #fbfefd;
-  border: 2px dashed #edf3f1;
-  border-radius: 12px;
-  color: #6c7c77;
+  padding: 64px 32px;
+  background: #fafbff;
+  border: 2px dashed #e3e8ef;
+  border-radius: 16px;
+  color: #8792a2;
+  margin-top: 24px;
 }
 
-.empty-state-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-}
+.empty-state-icon { font-size: 48px; margin-bottom: 16px; }
 
 .income-empty-state h3 {
   margin: 0 0 8px;
-  color: #294940;
+  color: #1a1f36;
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
-.income-empty-state p {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.6;
+.income-empty-state p { margin: 0; font-size: 14px; line-height: 1.6; }
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  .income-header { flex-direction: column; gap: 16px; }
+  .income-header h1 { font-size: 26px; }
+  .add-income-btn { width: 100%; justify-content: center; }
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+@media(max-width:700px){
+  .income-page { padding: 20px 16px; }
+  .income-total-card { padding: 24px; }
+  .income-total-card strong { font-size: 34px; }
+  .modal { width: 95%; }
 }
 
-/* Responsive Design */
-@media (max-width: 900px) {
-  .income-header {
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .income-header h1 {
-    font-size: 28px;
-  }
-
-  .add-income-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .modal {
-    width: 95%;
-    margin: 0 auto;
-  }
-
-  .income-table {
-    font-size: 13px;
-  }
-
-  .income-table th,
-  .income-table td {
-    padding: 12px;
-  }
-}
-
-@media (max-width: 700px) {
-  .income-page {
-    padding: 20px 16px;
-  }
-
-  .income-header h1 {
-    font-size: 24px;
-  }
-
-  .income-total-card {
-    padding: 20px;
-  }
-
-  .income-total-card strong {
-    font-size: 32px;
-  }
-
-  .modal-content {
-    border-radius: 16px;
-  }
-
-  .income-records-header h2 {
-    font-size: 18px;
-  }
-
-  .income-table-wrapper {
-    overflow-x: auto;
-  }
-
-  .income-table {
-    font-size: 12px;
-  }
-
-  .income-table th,
-  .income-table td {
-    padding: 10px;
-  }
-}
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
 </style>
 
 <script>
@@ -796,13 +666,11 @@
     const incomeModalCancel = document.getElementById('income-modal-cancel');
     const incomeModalForm = document.querySelector('.modal-form');
 
-    // Open modal
     addIncomeBtn.addEventListener('click', function() {
       incomeModal.classList.add('active');
       incomeModalBackdrop.classList.add('active');
     });
 
-    // Close modal
     function closeModal() {
       incomeModal.classList.remove('active');
       incomeModalBackdrop.classList.remove('active');
@@ -812,21 +680,14 @@
     incomeModalClose.addEventListener('click', closeModal);
     incomeModalCancel.addEventListener('click', closeModal);
 
-    // Close on backdrop click
     incomeModalBackdrop.addEventListener('click', function(e) {
-      if (e.target === incomeModalBackdrop) {
-        closeModal();
-      }
+      if (e.target === incomeModalBackdrop) closeModal();
     });
 
-    // Close on Escape key
     document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && incomeModal.classList.contains('active')) {
-        closeModal();
-      }
+      if (e.key === 'Escape' && incomeModal.classList.contains('active')) closeModal();
     });
 
-    // Form validation
     incomeModalForm.addEventListener('submit', function(e) {
       const source = document.getElementById('source').value.trim();
       const amount = document.getElementById('amount').value.trim();
@@ -834,58 +695,27 @@
       const category = document.getElementById('category').value;
       const startDate = document.getElementById('start_date').value;
 
-      if (!source) {
-        e.preventDefault();
-        alert('Please enter the income source.');
-        return;
-      }
-
-      if (!amount || parseFloat(amount) <= 0) {
-        e.preventDefault();
-        alert('Please enter a valid amount greater than 0.');
-        return;
-      }
-
-      if (!frequency) {
-        e.preventDefault();
-        alert('Please select a frequency.');
-        return;
-      }
-
-      if (!category) {
-        e.preventDefault();
-        alert('Please select a category.');
-        return;
-      }
-
-      if (!startDate) {
-        e.preventDefault();
-        alert('Please enter a start date.');
-        return;
-      }
+      if (!source) { e.preventDefault(); alert('Please enter the income source.'); return; }
+      if (!amount || parseFloat(amount) <= 0) { e.preventDefault(); alert('Please enter a valid amount greater than 0.'); return; }
+      if (!frequency) { e.preventDefault(); alert('Please select a frequency.'); return; }
+      if (!category) { e.preventDefault(); alert('Please select a category.'); return; }
+      if (!startDate) { e.preventDefault(); alert('Please enter a start date.'); return; }
     });
 
-    // Delete income functionality
     const deleteButtons = document.querySelectorAll('.delete-btn');
     deleteButtons.forEach(btn => {
       btn.addEventListener('click', function() {
         const incomeId = this.dataset.incomeId;
         if (confirm('Are you sure you want to delete this income entry? This action cannot be undone.')) {
-          // Get CSRF token from meta tag
           const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-          
-          // Create and submit a form with CSRF token
           const form = document.createElement('form');
           form.method = 'POST';
           form.action = `/income/${incomeId}/delete`;
-          
-          // Add CSRF token
           const csrfInput = document.createElement('input');
           csrfInput.type = 'hidden';
           csrfInput.name = 'csrf_token';
           csrfInput.value = csrfToken;
           form.appendChild(csrfInput);
-          
           document.body.appendChild(form);
           form.submit();
         }
