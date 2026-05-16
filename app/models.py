@@ -125,10 +125,28 @@ class ExpenseSplit(db.Model):
     member_id = db.Column(db.Integer, db.ForeignKey("group_members.id"), nullable=False, index=True)
     amount = db.Column(db.Float, nullable=False)
     paid = db.Column(db.Boolean, nullable=False, default=False)
+    settled_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    comments = db.relationship("SettlementComment", backref="split", cascade="all, delete-orphan", lazy=True)
 
     def __repr__(self) -> str:
         return f"<ExpenseSplit expense={self.expense_id} member={self.member_id} amount={self.amount}>"
+
+
+class SettlementComment(db.Model):
+    __tablename__ = "settlement_comments"
+
+    id = db.Column(db.Integer, primary_key=True)
+    split_id = db.Column(db.Integer, db.ForeignKey("expense_splits.id"), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    comment = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    author = db.relationship("User", foreign_keys=[user_id])
+
+    def __repr__(self) -> str:
+        return f"<SettlementComment split={self.split_id}>"
 
 
 class Income(db.Model):
