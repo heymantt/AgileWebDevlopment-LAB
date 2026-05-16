@@ -7,7 +7,7 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 
 from app.extensions import db
-from app.models import Receipt
+from app.models import Receipt, ExpenseSplit, GroupMember
 
 receipts_bp = Blueprint("receipts", __name__)
 
@@ -94,6 +94,26 @@ def index():
                 query = query.filter(Receipt.frequency_type == frequency_filter)
             
             expenses = query.order_by(Receipt.expense_date.desc(), Receipt.created_at.desc()).all()
+
+            member_map = {}
+            group_receipt_ids = [e.id for e in expenses if e.group_id]
+            if group_receipt_ids:
+                user_members = GroupMember.query.filter_by(user_id=current_user.id).all()
+                member_ids = [m.id for m in user_members]
+                if member_ids:
+                    splits = ExpenseSplit.query.filter(
+                        ExpenseSplit.expense_id.in_(group_receipt_ids),
+                        ExpenseSplit.member_id.in_(member_ids)
+                    ).all()
+                    for s in splits:
+                        member_map[s.expense_id] = s.amount
+            for e in expenses:
+                if e.group_id and e.id in member_map:
+                    e.display_amount = member_map[e.id]
+                    e.is_group_split = True
+                else:
+                    e.display_amount = e.amount
+                    e.is_group_split = False
             
             categories = (
                 db.session.query(Receipt.category)
@@ -155,7 +175,48 @@ def index():
     if frequency_filter:
         query = query.filter(Receipt.frequency_type == frequency_filter)
 
-    expenses = query.order_by(Receipt.expense_date.desc(), Receipt.created_at.desc()).all()
+    personal_expenses = query.order_by(Receipt.expense_date.desc(), Receipt.created_at.desc()).all()
+
+    # Also fetch group expenses the user is a member of (but didn't create)
+    user_members = GroupMember.query.filter_by(user_id=current_user.id).all()
+    member_group_ids = [m.group_id for m in user_members]
+    member_receipt_ids = {e.id for e in personal_expenses if e.group_id}
+
+    group_expenses_query = Receipt.query.filter(
+        Receipt.group_id.in_(member_group_ids),
+        Receipt.id.notin_(member_receipt_ids)
+    ) if member_group_ids else Receipt.query.filter(db.false())
+
+    if q:
+        group_expenses_query = group_expenses_query.filter(Receipt.merchant.ilike(f"%{q}%"))
+    if category_filter:
+        group_expenses_query = group_expenses_query.filter(Receipt.category == category_filter)
+
+    group_only_expenses = group_expenses_query.order_by(Receipt.expense_date.desc(), Receipt.created_at.desc()).all()
+
+    expenses = personal_expenses + group_only_expenses
+    expenses.sort(key=lambda e: (e.expense_date, e.created_at), reverse=True)
+
+    # For group expenses, show the current user's split amount instead of full amount
+    member_map = {}
+    group_receipt_ids = [e.id for e in expenses if e.group_id]
+    if group_receipt_ids and user_members:
+        member_ids = [m.id for m in user_members]
+        if member_ids:
+            splits = ExpenseSplit.query.filter(
+                ExpenseSplit.expense_id.in_(group_receipt_ids),
+                ExpenseSplit.member_id.in_(member_ids)
+            ).all()
+            for s in splits:
+                member_map[s.expense_id] = s.amount
+
+    for e in expenses:
+        if e.group_id and e.id in member_map:
+            e.display_amount = member_map[e.id]
+            e.is_group_split = True
+        else:
+            e.display_amount = e.amount
+            e.is_group_split = False
 
     categories = (
         db.session.query(Receipt.category)
