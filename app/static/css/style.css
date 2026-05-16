@@ -2297,3 +2297,324 @@ footer {
     }
 }
 
+
+/* ===== MERGED DASHBOARD + INSIGHTS PAGE ===== */
+
+.dashboard-page {
+    min-height: calc(100vh - 80px);
+    padding: 48px 20px;
+    background: linear-gradient(135deg, #f4f8f7 0%, #eef7f3 100%);
+}
+
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+}
+
+/* Header */
+.db-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.db-header .page-label {
+    font-size: 14px;
+    color: #5f6f6a;
+    margin-bottom: 6px;
+}
+
+.db-header h1 {
+    margin: 0 0 6px;
+    color: #12372f;
+    font-size: 36px;
+    font-weight: 800;
+}
+
+.db-header p {
+    color: #5f6f6a;
+    font-size: 15px;
+}
+
+.db-header-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* Primary stat cards */
+.db-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+}
+
+.db-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 22px 24px;
+    border-radius: 20px;
+    background: #ffffff;
+    border: 1px solid rgba(22, 128, 95, 0.12);
+    box-shadow: 0 8px 28px rgba(18, 55, 47, 0.08);
+}
+
+.db-stat-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.db-stat-body span {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: #6c7c77;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.db-stat-body strong {
+    font-size: 26px;
+    font-weight: 900;
+    color: #12372f;
+}
+
+.db-stat-expenses .db-stat-body strong { color: #b42318; }
+.db-stat-income  .db-stat-body strong { color: #16805f; }
+.db-stat-balance-ok .db-stat-body strong { color: #16805f; }
+.db-stat-balance-neg .db-stat-body strong { color: #b42318; }
+.db-stat-savings .db-stat-body strong { color: #12372f; }
+
+/* Secondary mini cards */
+.db-stat-grid--secondary .db-mini-card {
+    padding: 18px 22px;
+    border-radius: 18px;
+    background: #ffffff;
+    border: 1px solid rgba(22, 128, 95, 0.1);
+    box-shadow: 0 4px 14px rgba(18, 55, 47, 0.06);
+}
+
+.db-mini-card span {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: #6c7c77;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+}
+
+.db-mini-card strong {
+    font-size: 22px;
+    font-weight: 900;
+    color: #12372f;
+    display: block;
+}
+
+.db-mini-card small {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #7a8a85;
+    font-weight: 600;
+}
+
+/* Main layout */
+.db-layout {
+    display: grid;
+    grid-template-columns: 1.5fr 0.8fr;
+    gap: 24px;
+    align-items: start;
+}
+
+.db-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Shared card */
+.db-card {
+    background: #ffffff;
+    border: 1px solid rgba(22, 128, 95, 0.12);
+    border-radius: 22px;
+    padding: 28px;
+    box-shadow: 0 10px 32px rgba(18, 55, 47, 0.09);
+}
+
+.db-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.db-card-header h2 {
+    margin: 0 0 4px;
+    color: #12372f;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.db-card-header p {
+    color: #5f6f6a;
+    font-size: 14px;
+    margin: 0;
+}
+
+.db-card h2 {
+    margin: 0 0 12px;
+    color: #12372f;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.db-card p {
+    color: #5f6f6a;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* Insight card */
+.db-insight-card strong { color: #12372f; }
+
+.db-alert {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+.db-alert--warn    { background: #ffe9e9; color: #b42318; }
+.db-alert--ok      { background: #e4f6ef; color: #16805f; }
+.db-alert--neutral { background: #f1faf6; color: #294940; }
+
+/* Action buttons inside card */
+.db-action-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.db-action-btn {
+    display: block;
+    padding: 11px 14px;
+    border-radius: 12px;
+    background: #16805f;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    text-align: center;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.db-action-btn:hover {
+    background: #12372f;
+    transform: translateX(2px);
+}
+
+.db-action-btn--muted {
+    background: #ecf0f1;
+    color: #2c3e50;
+}
+
+.db-action-btn--muted:hover {
+    background: #bdc3c7;
+}
+
+/* Tables */
+.db-table-wrapper {
+    overflow-x: auto;
+}
+
+.db-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 400px;
+}
+
+.db-table th {
+    padding: 13px 16px;
+    background: #f1faf6;
+    color: #294940;
+    font-size: 12px;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #dceee8;
+}
+
+.db-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #edf3f1;
+    color: #334f48;
+    font-size: 14px;
+}
+
+.db-table tbody tr:hover td { background: #fbfefd; }
+
+.db-pill {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #e4f6ef;
+    color: #16805f;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.db-amount {
+    font-weight: 900;
+    color: #12372f;
+}
+
+.db-amount--high {
+    color: #b42318;
+}
+
+.db-empty {
+    padding: 32px;
+    text-align: center;
+    color: #7a8a85;
+    font-weight: 600;
+}
+
+/* Utility link */
+.btn-link {
+    color: #16805f;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.btn-link:hover { text-decoration: underline; }
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+    .db-stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 900px) {
+    .db-layout { grid-template-columns: 1fr; }
+    .db-header { flex-direction: column; }
+}
+
+@media (max-width: 600px) {
+    .db-stat-grid { grid-template-columns: 1fr; }
+    .db-header h1 { font-size: 26px; }
+    .db-card { padding: 20px; }
+    .db-stat-body strong { font-size: 22px; }
+}
