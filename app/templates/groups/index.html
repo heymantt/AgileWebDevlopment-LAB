@@ -141,9 +141,21 @@
     }
 
     /* Modal Styles */
-    .modal {
-        position: fixed;
-        z-index: 1000;
+    .card-actions { display:flex; gap:8px; margin-top:12px; padding-top:10px; border-top:1px solid #f0f0f0; }
+    .btn-card-action { flex:1; padding:6px 10px; border:none; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; background:#f0f2ff; color:#667eea; transition:all 0.2s; }
+    .btn-card-action:hover { background:#667eea; color:white; }
+    .btn-card-action.danger { background:#fff0f0; color:#e74c3c; }
+    .btn-card-action.danger:hover { background:#e74c3c; color:white; }
+    .badge-members { background:#f0f2ff; color:#667eea; border-radius:10px; padding:2px 8px; font-size:11px; font-weight:600; }
+    .search-wrapper { position:relative; }
+    .search-dropdown { position:absolute; top:100%; left:0; right:0; background:white; border:1px solid #dde1e7; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); z-index:200; max-height:180px; overflow-y:auto; display:none; }
+    .search-dropdown.open { display:block; }
+    .search-result { padding:9px 12px; cursor:pointer; font-size:13px; }
+    .search-result:hover { background:#f5f6fa; }
+    .search-result .result-email { color:#95a5a6; font-size:11px; }
+    .selected-members { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; min-height:10px; }
+    .member-tag { background:#667eea; color:white; border-radius:16px; padding:4px 10px; font-size:12px; display:flex; align-items:center; gap:5px; }
+    .member-tag button { background:none; border:none; color:white; cursor:pointer; font-size:14px; line-height:1; padding:0; }
         left: 0;
         top: 0;
         width: 100%;
@@ -276,7 +288,14 @@
                 <div class="group-description">{{ group.description or 'No description' }}</div>
                 <div class="group-info">
                     <span>Created: {{ group.created_at.strftime('%Y-%m-%d') }}</span>
+                    <span class="badge-members">{{ group.members | length }} members</span>
                 </div>
+                {% if group.creator_id == current_user.id %}
+                <div class="card-actions" onclick="event.stopPropagation()">
+                    <button class="btn-card-action" onclick="openEditGroupModal({{ group.id }}, '{{ group.name|e }}', '{{ (group.description or '')|e }}')">✏️ Edit</button>
+                    <button class="btn-card-action danger" onclick="confirmDeleteGroup({{ group.id }}, '{{ group.name|e }}')">🗑️ Delete</button>
+                </div>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
@@ -307,9 +326,13 @@
                 <textarea id="groupDescription" placeholder="Add details about this group..."></textarea>
             </div>
             <div class="form-group">
-                <label for="groupMembers">Members *</label>
-                <input type="text" id="groupMembers" placeholder="e.g., alice, bob@email.com, charlie" required>
-                <small style="color:#7f8c8d; font-size:12px; margin-top:4px; display:block;">Enter usernames or emails, separated by commas. At least one member is required.</small>
+                <label>Members *</label>
+                <div class="search-wrapper">
+                    <input type="text" id="memberSearch" placeholder="Search by username or email…" autocomplete="off" oninput="searchUsers(this.value)">
+                    <div class="search-dropdown" id="searchDropdown"></div>
+                </div>
+                <div class="selected-members" id="selectedMembers"></div>
+                <small style="color:#7f8c8d;font-size:12px;margin-top:4px;display:block;">Search and select at least one member.</small>
             </div>
             <div class="modal-buttons">
                 <button type="submit" class="btn-save">Create Group</button>
@@ -324,55 +347,155 @@
         document.getElementById('createGroupModal').classList.add('active');
     }
 
+    let selectedMembers = []; // {id, username, email} or {id:null, username, email: identifier}
+
+    async function searchUsers(q) {
+        const dropdown = document.getElementById('searchDropdown');
+        if (q.length < 2) { dropdown.classList.remove('open'); return; }
+        try {
+            const res = await fetch(`/groups/search-users?q=${encodeURIComponent(q)}`);
+            const users = await res.json();
+            if (!users.length) { dropdown.innerHTML = '<div class="search-result" style="color:#95a5a6;">No users found</div>'; dropdown.classList.add('open'); return; }
+            dropdown.innerHTML = users.map(u => `
+                <div class="search-result" onclick="selectMember(${u.id},'${u.username}','${u.email}')">
+                    <strong>${u.username}</strong>
+                    <span class="result-email">${u.email}</span>
+                </div>`).join('');
+            dropdown.classList.add('open');
+        } catch(e) { dropdown.classList.remove('open'); }
+    }
+
+    function selectMember(id, username, email) {
+        if (selectedMembers.find(m => m.id === id)) return;
+        selectedMembers.push({id, username, email});
+        renderSelectedMembers();
+        document.getElementById('memberSearch').value = '';
+        document.getElementById('searchDropdown').classList.remove('open');
+    }
+
+    function removeMember(id) {
+        selectedMembers = selectedMembers.filter(m => m.id !== id);
+        renderSelectedMembers();
+    }
+
+    function renderSelectedMembers() {
+        const container = document.getElementById('selectedMembers');
+        container.innerHTML = selectedMembers.map(m => `
+            <span class="member-tag">${m.username} <button onclick="removeMember(${m.id})">&times;</button></span>`).join('');
+    }
+
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.search-wrapper')) {
+            document.getElementById('searchDropdown').classList.remove('open');
+        }
+    });
+
     function closeCreateGroupModal() {
         document.getElementById('createGroupModal').classList.remove('active');
         document.getElementById('createGroupForm').reset();
+        selectedMembers = [];
+        renderSelectedMembers();
+        document.getElementById('searchDropdown').classList.remove('open');
     }
 
     document.getElementById('createGroupForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        
         const name = document.getElementById('groupName').value.trim();
         const description = document.getElementById('groupDescription').value.trim();
-        const membersRaw = document.getElementById('groupMembers').value.trim();
 
-        if (!membersRaw) {
-            alert('Please add at least one member.');
-            return;
-        }
+        if (!selectedMembers.length) { alert('Please add at least one member.'); return; }
 
-        const members = membersRaw.split(',').map(m => m.trim()).filter(m => m);
+        const members = selectedMembers.map(m => m.username);
 
         try {
             const response = await fetch('{{ url_for("groups.create_group") }}', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token() }}'
-                },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' },
                 body: JSON.stringify({ name, description, members })
             });
-
             const data = await response.json();
-            
-            if (data.success) {
-                closeCreateGroupModal();
-                location.reload();
-            } else {
-                alert('Error: ' + data.message);
-            }
-        } catch (error) {
-            alert('An error occurred: ' + error.message);
-        }
+            if (data.success) { closeCreateGroupModal(); location.reload(); }
+            else alert('Error: ' + data.message);
+        } catch (error) { alert('An error occurred: ' + error.message); }
     });
 
     // Close modal when clicking outside
     window.onclick = function(event) {
         const modal = document.getElementById('createGroupModal');
-        if (event.target === modal) {
-            modal.classList.remove('active');
-        }
+        if (event.target === modal) modal.classList.remove('active');
+        const editModal = document.getElementById('editGroupModal');
+        if (event.target === editModal) editModal.classList.remove('active');
+    }
+
+    // --- Edit Group ---
+    let editingGroupId = null;
+
+    function openEditGroupModal(id, name, description) {
+        editingGroupId = id;
+        document.getElementById('editGroupName').value = name;
+        document.getElementById('editGroupDescription').value = description;
+        document.getElementById('editGroupModal').classList.add('active');
+    }
+
+    function closeEditGroupModal() {
+        document.getElementById('editGroupModal').classList.remove('active');
+        editingGroupId = null;
+    }
+
+    document.getElementById('editGroupForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!editingGroupId) return;
+        const name = document.getElementById('editGroupName').value.trim();
+        const description = document.getElementById('editGroupDescription').value.trim();
+        try {
+            const res = await fetch(`/groups/${editingGroupId}/edit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' },
+                body: JSON.stringify({ name, description })
+            });
+            const data = await res.json();
+            if (data.success) { closeEditGroupModal(); location.reload(); }
+            else alert('Error: ' + data.message);
+        } catch(e) { alert('Error: ' + e.message); }
+    });
+
+    // --- Delete Group ---
+    async function confirmDeleteGroup(id, name) {
+        if (!confirm(`Delete group "${name}"? This will remove all expenses and splits. This cannot be undone.`)) return;
+        try {
+            const res = await fetch(`/groups/${id}/delete`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token() }}' }
+            });
+            const data = await res.json();
+            if (data.success) location.reload();
+            else alert('Error: ' + data.message);
+        } catch(e) { alert('Error: ' + e.message); }
     }
 </script>
+
+<!-- Edit Group Modal -->
+<div id="editGroupModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Edit Group</h2>
+            <button class="modal-close" onclick="closeEditGroupModal()">&times;</button>
+        </div>
+        <form id="editGroupForm">
+            <div class="form-group">
+                <label>Group Name *</label>
+                <input type="text" id="editGroupName" required>
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="editGroupDescription"></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button type="submit" class="btn-save">Save Changes</button>
+                <button type="button" class="btn-cancel" onclick="closeEditGroupModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 {% endblock %}
