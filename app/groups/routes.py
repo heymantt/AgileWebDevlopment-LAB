@@ -461,3 +461,80 @@ def get_comments(group_id, split_id):
         return jsonify({'success': True, 'comments': comments}), 200
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@groups_bp.route("/<int:group_id>/members/<int:member_id>/remove", methods=["POST"])
+@login_required
+def remove_member(group_id, member_id):
+    """Remove a member from a group (creator only)."""
+    try:
+        group = Group.query.filter_by(id=group_id, creator_id=current_user.id).first()
+        if not group:
+            return jsonify({'success': False, 'message': 'Only the group creator can remove members'}), 403
+        member = GroupMember.query.filter_by(id=member_id, group_id=group_id).first()
+        if not member:
+            return jsonify({'success': False, 'message': 'Member not found'}), 404
+        if member.user_id == current_user.id:
+            return jsonify({'success': False, 'message': 'You cannot remove yourself as the creator'}), 400
+        db.session.delete(member)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Member removed'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@groups_bp.route("/<int:group_id>/expenses/<int:expense_id>/edit", methods=["POST"])
+@login_required
+def edit_group_expense(group_id, expense_id):
+    """Edit a group expense (creator only)."""
+    try:
+        group = Group.query.filter_by(id=group_id, creator_id=current_user.id).first()
+        if not group:
+            return jsonify({'success': False, 'message': 'Only the group creator can edit expenses'}), 403
+        expense = Receipt.query.filter_by(id=expense_id, group_id=group_id).first()
+        if not expense:
+            return jsonify({'success': False, 'message': 'Expense not found'}), 404
+
+        data = request.get_json(silent=True) or {}
+        merchant = str(data.get('merchant', '') or '').strip()
+        category = str(data.get('category', '') or '').strip()
+        notes = str(data.get('notes', '') or '').strip()
+        expense_date_raw = str(data.get('expense_date', '') or '').strip()
+
+        if not merchant or not category or not expense_date_raw:
+            return jsonify({'success': False, 'message': 'Merchant, category and date are required'}), 400
+
+        try:
+            expense_date = datetime.strptime(expense_date_raw, "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({'success': False, 'message': 'Invalid date format'}), 400
+
+        expense.merchant = merchant
+        expense.category = category
+        expense.notes = notes or None
+        expense.expense_date = expense_date
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Expense updated'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@groups_bp.route("/<int:group_id>/expenses/<int:expense_id>/delete", methods=["POST"])
+@login_required
+def delete_group_expense(group_id, expense_id):
+    """Delete a group expense (creator only)."""
+    try:
+        group = Group.query.filter_by(id=group_id, creator_id=current_user.id).first()
+        if not group:
+            return jsonify({'success': False, 'message': 'Only the group creator can delete expenses'}), 403
+        expense = Receipt.query.filter_by(id=expense_id, group_id=group_id).first()
+        if not expense:
+            return jsonify({'success': False, 'message': 'Expense not found'}), 404
+        db.session.delete(expense)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Expense deleted'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
