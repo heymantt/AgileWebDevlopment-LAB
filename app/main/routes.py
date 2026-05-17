@@ -19,12 +19,42 @@ def dashboard():
     today = date.today()
     month_start = today.replace(day=1)
 
-    monthly_income = (
-        Income.query
-        .filter(Income.user_id == current_user.id)
-        .filter(Income.income_date >= month_start)
-        .with_entities(func.coalesce(func.sum(Income.amount), 0))
-        .scalar()
+    # Helper function to check if income should be counted for a given month
+    def should_count_income_for_month(item, target_month_start, target_month_end):
+        """Check if income should be counted in the target month."""
+        if not item.start_date:
+            return False
+        
+        # Check if income has ended before the target month
+        if item.end_date and item.end_date < target_month_start:
+            return False
+        
+        # Get frequency value (handle case variations)
+        frequency = (item.frequency or "").lower().strip()
+        
+        # For one-time income, count if it falls within the target month
+        if frequency == "one-time":
+            income_date = item.income_date or item.start_date
+            return target_month_start <= income_date < target_month_end
+        
+        # For recurring income, count if:
+        # 1. It started on or before the end of target month
+        # 2. It hasn't ended before the start of target month
+        # 3. Frequency is one of the recurring types
+        if (item.start_date < target_month_end and 
+            frequency in ["daily", "weekly", "monthly", "yearly"]):
+            return True
+        
+        return False
+
+    # Calculate current month income
+    all_incomes = Income.query.filter_by(user_id=current_user.id).all()
+    month_end = today.replace(day=28) + timedelta(days=4)
+    month_end = month_end.replace(day=1)  # First day of next month
+    
+    monthly_income = sum(
+        item.amount for item in all_incomes
+        if should_count_income_for_month(item, month_start, month_end)
     )
 
     monthly_expenses = (
@@ -144,14 +174,13 @@ def dashboard():
             .with_entities(func.coalesce(func.sum(Receipt.amount), 0))
             .scalar()
         )
-        m_inc = (
-            Income.query
-            .filter(Income.user_id == current_user.id)
-            .filter(Income.income_date >= m_start)
-            .filter(Income.income_date < m_end)
-            .with_entities(func.coalesce(func.sum(Income.amount), 0))
-            .scalar()
+        
+        # Calculate income for this month using the same logic
+        m_inc = sum(
+            item.amount for item in all_incomes
+            if should_count_income_for_month(item, m_start, m_end)
         )
+        
         monthly_labels.append(m_start.strftime("%b %Y"))
         monthly_expense_series.append(float(m_exp))
         monthly_income_series.append(float(m_inc))

@@ -91,9 +91,36 @@ def income_home():
     )
 
     today = date.today()
+    
+    def should_count_income(item, current_date):
+        """Check if income should be counted in the current month's total."""
+        if not item.start_date:
+            return False
+        
+        # Check if income has ended
+        if item.end_date and item.end_date < current_date:
+            return False
+        
+        # Get frequency value (handle both lowercase and any case variations)
+        frequency = (item.frequency or "").lower().strip()
+        
+        # For one-time income, count only if it falls in the current month
+        if frequency == "one-time":
+            return (item.income_date.year == current_date.year and 
+                    item.income_date.month == current_date.month)
+        
+        # For recurring income (daily, weekly, monthly, yearly), count if:
+        # 1. It started on or before today
+        # 2. It hasn't ended yet
+        # 3. Frequency is one of the recurring types
+        if item.start_date <= current_date and frequency in ["daily", "weekly", "monthly", "yearly"]:
+            return True
+        
+        return False
+    
     monthly_total = sum(
         item.amount for item in incomes
-        if item.start_date and item.start_date.year == today.year and item.start_date.month == today.month
+        if should_count_income(item, today)
     )
 
     return render_template(
