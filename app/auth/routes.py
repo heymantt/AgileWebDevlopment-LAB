@@ -99,20 +99,23 @@ def forgot_password():
         email = request.form.get("email", "").strip().lower()
         user = User.query.filter_by(email=email).first()
 
+        # Always show success message for security reasons (don't reveal if email exists)
         if user:
             try:
                 send_password_reset_email(user)
-                flash("A password reset link has been sent to your email.", "success")
             except Exception as e:
                 import traceback
                 print("EMAIL ERROR TYPE:", type(e))
                 print("EMAIL ERROR MESSAGE:", repr(e))
                 traceback.print_exc()
-                flash("Password reset email could not be sent. Please try again later.", "error")
-        else:
-            flash("If an account exists with that email, a reset link has been sent.", "info")
-
-        return redirect(url_for("auth.login"))
+        
+        # Show success message regardless (for security - don't leak user existence)
+        return render_template(
+            "auth/forgot_password.html", 
+            page_title="Forgot Password",
+            email_sent=True,
+            email=email
+        )
 
     return render_template("auth/forgot_password.html", page_title="Forgot Password")
 
@@ -195,4 +198,31 @@ If you did not request this password reset, you can ignore this email.
 TrackMint Team
 """
 
-    mail.send(msg)
+    msg.html = f"""<html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #2c3e50;">Password Reset Request</h2>
+            <p>Hello <strong>{user.username}</strong>,</p>
+            <p>A password reset was requested for your TrackMint account.</p>
+            <p>Click the button below to reset your password:</p>
+            <div style="margin: 30px 0;">
+                <a href="{reset_url}" style="background-color: #3498db; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; display: inline-block;">Reset Password</a>
+            </div>
+            <p style="color: #7f8c8d; font-size: 12px;">This link will expire in 30 minutes.</p>
+            <p>If you did not request this password reset, you can ignore this email.</p>
+            <hr style="border: none; border-top: 1px solid #ecf0f1; margin: 20px 0;">
+            <p style="color: #7f8c8d; font-size: 12px;">TrackMint Team</p>
+        </div>
+    </body>
+</html>"""
+
+    try:
+        print(f"ATTEMPTING TO SEND EMAIL FROM {sender} TO {recipient}...")
+        mail.send(msg)
+        print(f"✓ EMAIL SENT SUCCESSFULLY TO {recipient}")
+        return True
+    except Exception as e:
+        print(f"✗ EMAIL SEND FAILED: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise
