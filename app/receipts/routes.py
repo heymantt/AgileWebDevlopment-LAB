@@ -149,6 +149,7 @@ def index():
         )
 
         if file and file.filename and image_filename and save_path:
+            os.makedirs(current_app.config["RECEIPT_UPLOAD_FOLDER"], exist_ok=True)
             file.save(save_path)
 
         db.session.add(receipt)
@@ -299,7 +300,16 @@ def receipt_detail(receipt_id):
 @receipts_bp.route("/<int:receipt_id>/edit", methods=["GET", "POST"])
 @login_required
 def edit_receipt(receipt_id):
-    receipt = Receipt.query.filter_by(id=receipt_id, user_id=current_user.id).first_or_404()
+    from flask import abort
+    # Allow viewing if user owns it, or is a member of the group it belongs to
+    receipt = Receipt.query.filter_by(id=receipt_id, user_id=current_user.id).first()
+    if receipt is None:
+        receipt = Receipt.query.filter_by(id=receipt_id).first_or_404()
+        is_member = GroupMember.query.filter_by(
+            group_id=receipt.group_id, user_id=current_user.id
+        ).first() if receipt.group_id else None
+        if not is_member:
+            abort(403)
 
     if request.method == "POST":
         merchant = request.form.get("merchant", "").strip()
@@ -370,7 +380,16 @@ def edit_receipt(receipt_id):
 @login_required
 def delete_receipt(receipt_id):
     """Delete an expense record."""
-    receipt = Receipt.query.filter_by(id=receipt_id, user_id=current_user.id).first_or_404()
+    from flask import abort
+    # Allow viewing if user owns it, or is a member of the group it belongs to
+    receipt = Receipt.query.filter_by(id=receipt_id, user_id=current_user.id).first()
+    if receipt is None:
+        receipt = Receipt.query.filter_by(id=receipt_id).first_or_404()
+        is_member = GroupMember.query.filter_by(
+            group_id=receipt.group_id, user_id=current_user.id
+        ).first() if receipt.group_id else None
+        if not is_member:
+            abort(403)
     
     # Delete receipt image if it exists
     if receipt.image_filename:

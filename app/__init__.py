@@ -3,8 +3,7 @@ import os
 from flask import Flask
 
 from config import config_by_name
-from app.extensions import db, migrate, login_manager, csrf
-
+from app.extensions import db, migrate, login_manager, csrf, mail
 
 def create_app(config_name=None):
     """
@@ -33,6 +32,7 @@ def initialize_extensions(app):
     migrate.init_app(app, db)
     login_manager.init_app(app)
     csrf.init_app(app)
+    mail.init_app(app)
 
 
 def register_blueprints(app):
