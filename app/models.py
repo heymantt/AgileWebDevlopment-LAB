@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from itsdangerous import URLSafeTimedSerializer
+from flask import current_app
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -42,6 +44,25 @@ class User(UserMixin, db.Model):
 
     def __repr__(self) -> str:
         return f"<User {self.username}>"
+    
+    def get_reset_token(self):
+        serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+        return serializer.dumps(self.email, salt="password-reset-salt")
+
+    @staticmethod
+    def verify_reset_token(token, max_age=1800):
+        serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+
+        try:
+            email = serializer.loads(
+                token,
+                salt="password-reset-salt",
+                max_age=max_age
+            )
+        except Exception:
+            return None
+
+        return User.query.filter_by(email=email).first()
 
 class Group(db.Model):
     __tablename__ = "groups"
