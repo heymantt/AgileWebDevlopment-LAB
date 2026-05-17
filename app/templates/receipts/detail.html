@@ -60,38 +60,30 @@
         <h2>Expense Receipt</h2>
 
         {% if receipt.image_filename %}
-          <div class="receipt-image-preview">
-            {% if receipt.image_filename.endswith('.pdf') %}
-              <div class="pdf-preview">
-                <div class="pdf-icon">📄</div>
-                <p>PDF receipt uploaded</p>
-                <a 
-                  href="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}" 
-                  target="_blank"
-                  class="view-file-btn"
-                >
-                  Open PDF
-                </a>
-              </div>
-            {% else %}
-              <img 
-                src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}" 
-                alt="Receipt image"
-              >
-            {% endif %}
-          </div>
+          {% set file_url = url_for('static', filename='uploads/receipts/' ~ receipt.image_filename) %}
 
-          <a 
-            href="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}" 
-            target="_blank"
-            class="view-file-btn full-width"
-          >
-            View Full Receipt
-          </a>
+          {% if receipt.image_filename.lower().endswith('.pdf') %}
+            <div class="pdf-receipt-card">
+              <div class="pdf-icon">📄</div>
+              <p>PDF receipt uploaded</p>
+              <a href="{{ file_url }}" target="_blank" class="view-file-btn">
+                Open PDF
+              </a>
+            </div>
+          {% else %}
+            <div class="receipt-image-preview">
+              <img src="{{ file_url }}" alt="Receipt image">
+            </div>
+
+            <a href="{{ file_url }}" target="_blank" class="view-file-btn full-width">
+              View Full Receipt
+            </a>
+          {% endif %}
+
         {% else %}
-          <div class="no-image-box">
+          <div class="no-receipt-card">
             <div class="no-image-icon">🖼️</div>
-            <p>No receipt image was uploaded for this record.</p>
+            <p>No receipt file was uploaded for this record.</p>
           </div>
         {% endif %}
       </div>

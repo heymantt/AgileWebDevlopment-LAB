@@ -1410,7 +1410,9 @@ footer {
     color: #6c7c77;
     font-size: 13px;
     font-weight: 700;
-}/* ===== UNIFIED EXPENSES PAGE STYLES ===== */
+}
+
+/* ===== UNIFIED EXPENSES PAGE STYLES ===== */
 
 .expenses-page {
     min-height: calc(100vh - 80px);
@@ -1431,7 +1433,7 @@ footer {
     margin-bottom: 32px;
 }
 
-.expenses-header > div {
+.expenses-header>div {
     flex: 1;
 }
 
@@ -1537,6 +1539,7 @@ footer {
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -2387,11 +2390,25 @@ footer {
     color: #12372f;
 }
 
-.db-stat-expenses .db-stat-body strong { color: #b42318; }
-.db-stat-income  .db-stat-body strong { color: #16805f; }
-.db-stat-balance-ok .db-stat-body strong { color: #16805f; }
-.db-stat-balance-neg .db-stat-body strong { color: #b42318; }
-.db-stat-savings .db-stat-body strong { color: #12372f; }
+.db-stat-expenses .db-stat-body strong {
+    color: #b42318;
+}
+
+.db-stat-income .db-stat-body strong {
+    color: #16805f;
+}
+
+.db-stat-balance-ok .db-stat-body strong {
+    color: #16805f;
+}
+
+.db-stat-balance-neg .db-stat-body strong {
+    color: #b42318;
+}
+
+.db-stat-savings .db-stat-body strong {
+    color: #12372f;
+}
 
 /* Secondary mini cards */
 .db-stat-grid--secondary .db-mini-card {
@@ -2485,7 +2502,9 @@ footer {
 }
 
 /* Insight card */
-.db-insight-card strong { color: #12372f; }
+.db-insight-card strong {
+    color: #12372f;
+}
 
 .db-alert {
     margin-top: 14px;
@@ -2496,9 +2515,20 @@ footer {
     line-height: 1.5;
 }
 
-.db-alert--warn    { background: #ffe9e9; color: #b42318; }
-.db-alert--ok      { background: #e4f6ef; color: #16805f; }
-.db-alert--neutral { background: #f1faf6; color: #294940; }
+.db-alert--warn {
+    background: #ffe9e9;
+    color: #b42318;
+}
+
+.db-alert--ok {
+    background: #e4f6ef;
+    color: #16805f;
+}
+
+.db-alert--neutral {
+    background: #f1faf6;
+    color: #294940;
+}
 
 /* Action buttons inside card */
 .db-action-list {
@@ -2563,7 +2593,9 @@ footer {
     font-size: 14px;
 }
 
-.db-table tbody tr:hover td { background: #fbfefd; }
+.db-table tbody tr:hover td {
+    background: #fbfefd;
+}
 
 .db-pill {
     display: inline-block;
@@ -2600,21 +2632,68 @@ footer {
     white-space: nowrap;
 }
 
-.btn-link:hover { text-decoration: underline; }
+.btn-link:hover {
+    text-decoration: underline;
+}
 
 /* ── Responsive ── */
 @media (max-width: 1100px) {
-    .db-stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .db-stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 @media (max-width: 900px) {
-    .db-layout { grid-template-columns: 1fr; }
-    .db-header { flex-direction: column; }
+    .db-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .db-header {
+        flex-direction: column;
+    }
 }
 
 @media (max-width: 600px) {
-    .db-stat-grid { grid-template-columns: 1fr; }
-    .db-header h1 { font-size: 26px; }
-    .db-card { padding: 20px; }
-    .db-stat-body strong { font-size: 22px; }
+    .db-stat-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .db-header h1 {
+        font-size: 26px;
+    }
+
+    .db-card {
+        padding: 20px;
+    }
+
+    .db-stat-body strong {
+        font-size: 22px;
+    }
+}
+
+
+.pdf-receipt-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    background: #f9fafb;
+}
+
+.pdf-icon {
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+.pdf-receipt-card p {
+    margin: 8px 0 16px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.receipt-image-preview img {
+    width: 100%;
+    max-height: 420px;
+    object-fit: contain;
+    border-radius: 10px;
 }
