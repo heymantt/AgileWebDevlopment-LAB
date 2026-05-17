@@ -189,7 +189,18 @@ def dashboard():
 @main_bp.route("/profile")
 @login_required
 def profile():
-    return render_template("profile.html", page_title="Profile")
+    from app.models import Group, GroupMember
+    receipt_count = len(current_user.receipts)
+    group_count = Group.query.join(GroupMember, Group.id == GroupMember.group_id).filter(
+        GroupMember.user_id == current_user.id
+    ).count()
+    return render_template(
+        "profile.html",
+        page_title="Profile",
+        receipt_count=receipt_count,
+        group_count=group_count,
+        total_points=current_user.total_points,
+    )
 
 
 @main_bp.route("/profile/update", methods=["POST"])
@@ -197,7 +208,7 @@ def profile():
 def update_profile():
     """Update user profile information."""
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
         username = data.get('username', '').strip()
         
         if not username:
@@ -223,7 +234,7 @@ def update_profile():
 def change_password():
     """Change user password."""
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
         old_password = data.get('old_password', '')
         new_password = data.get('new_password', '')
         confirm_password = data.get('confirm_password', '')

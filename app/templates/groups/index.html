@@ -1,501 +1,337 @@
 {% extends "base.html" %}
-
 {% block content %}
 <style>
-    .page-header {
-        margin-bottom: 40px;
-    }
+  .groups-page { max-width:1200px; margin:0 auto; padding:32px 24px 60px; }
 
-    .page-header h1 {
-        font-size: 32px;
-        color: #2c3e50;
-        margin-bottom: 10px;
-    }
+  .groups-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:32px; flex-wrap:wrap; gap:16px; }
+  .groups-header-left .page-label { font-size:12px; font-weight:700; color:#667eea; letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px; }
+  .groups-header-left h1 { font-size:32px; font-weight:800; color:#1a1f36; margin:0 0 4px; letter-spacing:-.5px; }
+  .groups-header-left p { font-size:14px; color:#8792a2; margin:0; }
 
-    .page-header p {
-        color: #7f8c8d;
-        font-size: 16px;
-    }
+  .create-group-btn {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:12px 24px; background:linear-gradient(135deg,#667eea,#764ba2);
+    color:white; border:none; border-radius:12px; font-size:14px; font-weight:700;
+    cursor:pointer; transition:.2s; box-shadow:0 4px 16px rgba(102,126,234,.4);
+    font-family:'DM Sans',sans-serif;
+  }
+  .create-group-btn:hover { opacity:.92; transform:translateY(-2px); box-shadow:0 8px 24px rgba(102,126,234,.45); }
 
-    .cta-section {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 40px;
-        border-radius: 12px;
-        text-align: center;
-        margin-bottom: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
+  /* Grid */
+  .groups-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px; }
 
-    .cta-section h2 {
-        font-size: 24px;
-        margin-bottom: 15px;
-        text-align: left;
-    }
+  .group-card {
+    background:white; border-radius:16px; padding:22px;
+    border:1px solid #f0f2f7; box-shadow:0 2px 12px rgba(0,0,0,.06);
+    cursor:pointer; transition:.2s; display:flex; flex-direction:column; gap:14px;
+    text-decoration:none;
+  }
+  .group-card:hover { border-color:#c7d4ff; box-shadow:0 8px 28px rgba(102,126,234,.18); transform:translateY(-3px); }
 
-    .cta-section p {
-        opacity: 0.95;
-        margin-bottom: 20px;
-        font-size: 14px;
-        text-align: left;
-    }
+  .group-card-top { display:flex; align-items:flex-start; gap:14px; }
+  .group-avatar {
+    width:46px; height:46px; border-radius:13px; flex-shrink:0;
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px; font-weight:800; color:white;
+  }
+  .group-name { font-size:16px; font-weight:800; color:#1a1f36; margin-bottom:3px; }
+  .group-description { font-size:13px; color:#8792a2; line-height:1.5; }
 
-    .btn {
-        padding: 12px 32px;
-        background: white;
-        color: #667eea;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
+  .group-card-meta { display:flex; align-items:center; justify-content:space-between; }
+  .group-date { font-size:12px; color:#aab4c4; }
+  .members-badge {
+    display:inline-flex; align-items:center; gap:5px;
+    background:#f0f2ff; color:#667eea; border-radius:20px;
+    padding:4px 12px; font-size:12px; font-weight:700;
+  }
 
-    .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-    }
+  .card-actions { display:flex; gap:8px; padding-top:12px; border-top:1px solid #f0f2f7; }
+  .card-action-btn {
+    flex:1; padding:8px 10px; border:1.5px solid #e8ecf4; border-radius:9px;
+    font-size:12px; font-weight:700; cursor:pointer;
+    background:white; color:#667eea; transition:.15s; font-family:'DM Sans',sans-serif;
+  }
+  .card-action-btn:hover { background:#667eea; color:white; border-color:#667eea; }
+  .card-action-btn.danger { color:#ef4444; border-color:#fecaca; background:#fff5f5; }
+  .card-action-btn.danger:hover { background:#ef4444; color:white; border-color:#ef4444; }
 
-    .btn-primary {
-        background: #667eea;
-        color: white;
-        padding: 12px 32px;
-    }
+  /* Empty state */
+  .empty-state {
+    text-align:center; padding:80px 24px;
+    background:white; border-radius:16px;
+    border:1px solid #f0f2f7; box-shadow:0 2px 12px rgba(0,0,0,.06);
+  }
+  .empty-icon { font-size:60px; margin-bottom:18px; }
+  .empty-state h2 { font-size:22px; font-weight:800; color:#1a1f36; margin:0 0 10px; }
+  .empty-state p { font-size:14px; color:#8792a2; max-width:380px; margin:0 auto 24px; line-height:1.7; }
 
-    .btn-primary:hover {
-        background: #5568d3;
-    }
+  /* Modal */
+  .modal-backdrop {
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(15,20,40,.55); backdrop-filter:blur(4px);
+    z-index:999; opacity:0; visibility:hidden; transition:opacity .28s, visibility .28s;
+  }
+  .modal-backdrop.active { opacity:1; visibility:visible; }
+  .modal {
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+    z-index:1000; opacity:0; visibility:hidden; transition:opacity .28s, visibility .28s;
+    pointer-events:none;
+  }
+  .modal.active { opacity:1; visibility:visible; pointer-events:auto; }
+  .modal-content {
+    background:white; border-radius:20px; width:94%; max-width:500px;
+    max-height:92vh; overflow-y:auto;
+    box-shadow:0 24px 80px rgba(0,0,0,.22); padding:32px;
+    animation:modalIn .28s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes modalIn { from{opacity:0;transform:scale(.94) translateY(16px);} to{opacity:1;transform:scale(1) translateY(0);} }
+  .modal-content::-webkit-scrollbar { display:none; }
+  .modal-content { -ms-overflow-style:none; scrollbar-width:none; }
+  .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; padding-bottom:18px; border-bottom:2px solid #f5f7ff; }
+  .modal-header h2 { font-size:20px; font-weight:800; color:#1a1f36; margin:0; }
+  .modal-close { background:none; border:none; font-size:24px; cursor:pointer; color:#aab4c4; line-height:1; padding:4px; transition:color .15s, transform .2s; border-radius:8px; }
+  .modal-close:hover { color:#1a1f36; transform:rotate(90deg); }
+  .modal-form { display:flex; flex-direction:column; gap:16px; }
+  .modal-form-group { display:flex; flex-direction:column; gap:6px; }
+  .modal-form-group label { font-size:12px; font-weight:700; color:#8792a2; letter-spacing:.05em; text-transform:uppercase; }
+  .modal-form-group input, .modal-form-group textarea {
+    padding:11px 14px; border:1.5px solid #e8ecf4; border-radius:11px;
+    font-size:14px; font-family:'DM Sans',sans-serif; color:#1a1f36;
+    background:#fafbff; transition:border-color .2s, box-shadow .2s;
+  }
+  .modal-form-group input:focus, .modal-form-group textarea:focus { outline:none; border-color:#667eea; background:white; box-shadow:0 0 0 4px rgba(102,126,234,.12); }
+  .modal-form-group textarea { resize:vertical; min-height:70px; }
 
-    .groups-list {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-        overflow: hidden;
-    }
+  /* Member search */
+  .search-wrapper { position:relative; }
+  .search-dropdown { position:absolute; top:100%; left:0; right:0; background:white; border:1.5px solid #e8ecf4; border-radius:11px; box-shadow:0 8px 24px rgba(0,0,0,.12); z-index:200; max-height:200px; overflow-y:auto; display:none; margin-top:4px; }
+  .search-dropdown.open { display:block; }
+  .search-result { padding:10px 14px; cursor:pointer; font-size:13px; display:flex; flex-direction:column; gap:2px; transition:background .1s; }
+  .search-result:hover { background:#f5f6fa; }
+  .search-result .result-name { font-weight:700; color:#1a1f36; }
+  .search-result .result-email { color:#8792a2; font-size:11px; }
+  .selected-members { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .member-tag { background:linear-gradient(135deg,#667eea,#764ba2); color:white; border-radius:20px; padding:5px 12px; font-size:12px; font-weight:700; display:flex; align-items:center; gap:6px; }
+  .member-tag button { background:none; border:none; color:white; cursor:pointer; font-size:16px; line-height:1; padding:0; opacity:.8; }
+  .member-tag button:hover { opacity:1; }
 
-    .groups-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 20px;
-        padding: 40px;
-    }
-
-    .group-card {
-        border: 2px solid #ecf0f1;
-        border-radius: 12px;
-        padding: 25px;
-        background: #f9f9f9;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    .group-card:hover {
-        border-color: #667eea;
-        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
-        transform: translateY(-2px);
-    }
-
-    .group-name {
-        font-size: 18px;
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 10px;
-    }
-
-    .group-description {
-        font-size: 14px;
-        color: #7f8c8d;
-        margin-bottom: 15px;
-    }
-
-    .group-info {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 12px;
-        color: #95a5a6;
-    }
-
-    .empty-state {
-        padding: 60px 40px;
-        text-align: center;
-    }
-
-    .empty-icon {
-        font-size: 64px;
-        margin-bottom: 20px;
-    }
-
-    .empty-text {
-        font-size: 18px;
-        color: #2c3e50;
-        margin-bottom: 10px;
-        font-weight: 600;
-    }
-
-    .empty-subtext {
-        color: #7f8c8d;
-        margin-bottom: 30px;
-    }
-
-    /* Modal Styles */
-    .card-actions { display:flex; gap:8px; margin-top:12px; padding-top:10px; border-top:1px solid #f0f0f0; }
-    .btn-card-action { flex:1; padding:6px 10px; border:none; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; background:#f0f2ff; color:#667eea; transition:all 0.2s; }
-    .btn-card-action:hover { background:#667eea; color:white; }
-    .btn-card-action.danger { background:#fff0f0; color:#e74c3c; }
-    .btn-card-action.danger:hover { background:#e74c3c; color:white; }
-    .badge-members { background:#f0f2ff; color:#667eea; border-radius:10px; padding:2px 8px; font-size:11px; font-weight:600; }
-    .search-wrapper { position:relative; }
-    .search-dropdown { position:absolute; top:100%; left:0; right:0; background:white; border:1px solid #dde1e7; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); z-index:200; max-height:180px; overflow-y:auto; display:none; }
-    .search-dropdown.open { display:block; }
-    .search-result { padding:9px 12px; cursor:pointer; font-size:13px; }
-    .search-result:hover { background:#f5f6fa; }
-    .search-result .result-email { color:#95a5a6; font-size:11px; }
-    .selected-members { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; min-height:10px; }
-    .member-tag { background:#667eea; color:white; border-radius:16px; padding:4px 10px; font-size:12px; display:flex; align-items:center; gap:5px; }
-    .member-tag button { background:none; border:none; color:white; cursor:pointer; font-size:14px; line-height:1; padding:0; }
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-    }
-
-    .modal.active {
-        opacity: 1;
-        visibility: visible;
-    }
-
-    .modal-content {
-        background-color: #fff;
-        padding: 30px;
-        border-radius: 12px;
-        width: 90%;
-        max-width: 500px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-    }
-
-    .modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-
-    .modal-header h2 {
-        margin: 0;
-        color: #2c3e50;
-    }
-
-    .modal-close {
-        background: none;
-        border: none;
-        font-size: 24px;
-        cursor: pointer;
-        color: #7f8c8d;
-    }
-
-    .form-group {
-        margin-bottom: 15px;
-    }
-
-    .form-group label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: 600;
-        color: #2c3e50;
-        font-size: 14px;
-    }
-
-    .form-group input,
-    .form-group textarea {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ecf0f1;
-        border-radius: 8px;
-        font-size: 14px;
-        font-family: inherit;
-    }
-
-    .form-group input:focus,
-    .form-group textarea:focus {
-        outline: none;
-        border-color: #667eea;
-        box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
-    }
-
-    .form-group textarea {
-        resize: vertical;
-        min-height: 80px;
-    }
-
-    .modal-buttons {
-        display: flex;
-        gap: 10px;
-        margin-top: 20px;
-    }
-
-    .modal-buttons button {
-        flex: 1;
-        padding: 10px;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    .btn-save {
-        background: #667eea;
-        color: white;
-    }
-
-    .btn-save:hover {
-        background: #5568d3;
-    }
-
-    .btn-cancel {
-        background: #ecf0f1;
-        color: #2c3e50;
-    }
-
-    .btn-cancel:hover {
-        background: #bdc3c7;
-    }
+  .modal-form-actions { display:flex; gap:10px; margin-top:6px; padding-top:18px; border-top:2px solid #f5f7ff; }
+  .btn-primary { flex:1; padding:13px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:11px; font-size:14px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; transition:.2s; }
+  .btn-primary:hover { opacity:.92; transform:translateY(-1px); }
+  .btn-secondary { padding:13px 20px; background:#f0f2f7; color:#8792a2; border:none; border-radius:11px; font-size:14px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; transition:.15s; }
+  .btn-secondary:hover { background:#e3e8ef; color:#1a1f36; }
 </style>
 
-<div class="page-header">
-    <h1>👥 Groups & Shared Expenses</h1>
-    <p>Create groups and split expenses with friends and family.</p>
-</div>
-
-<div class="cta-section">
-    <div>
-        <h2>Share Expenses with Others</h2>
-        <p>Create a group, add members, and track shared expenses together.</p>
+<section class="groups-page">
+  <div class="groups-header">
+    <div class="groups-header-left">
+      <p class="page-label">Shared Expenses</p>
+      <h1>Groups</h1>
+      <p>Create groups and split expenses with friends and family.</p>
     </div>
-    <button class="btn" onclick="openCreateGroupModal()">+ Create Group</button>
-</div>
+    <button class="create-group-btn" onclick="openCreateModal()">+ Create Group</button>
+  </div>
 
-<div class="groups-list">
-    {% if groups %}
-        <div class="groups-grid">
-            {% for group in groups %}
-            <div class="group-card" onclick="window.location='/groups/{{ group.id }}'">
-                <div class="group-name">{{ group.name }}</div>
-                <div class="group-description">{{ group.description or 'No description' }}</div>
-                <div class="group-info">
-                    <span>Created: {{ group.created_at.strftime('%Y-%m-%d') }}</span>
-                    <span class="badge-members">{{ group.members | length }} members</span>
-                </div>
-                {% if group.creator_id == current_user.id %}
-                <div class="card-actions" onclick="event.stopPropagation()">
-                    <button class="btn-card-action" onclick="openEditGroupModal({{ group.id }}, '{{ group.name|e }}', '{{ (group.description or '')|e }}')">✏️ Edit</button>
-                    <button class="btn-card-action danger" onclick="confirmDeleteGroup({{ group.id }}, '{{ group.name|e }}')">🗑️ Delete</button>
-                </div>
-                {% endif %}
-            </div>
-            {% endfor %}
+  {% if groups %}
+  <div class="groups-grid">
+    {% for group in groups %}
+    <div class="group-card" onclick="window.location='/groups/{{ group.id }}'">
+      <div class="group-card-top">
+        <div class="group-avatar">{{ group.name[0].upper() }}</div>
+        <div style="flex:1;">
+          <div class="group-name">{{ group.name }}</div>
+          <div class="group-description">{{ group.description or 'No description added.' }}</div>
         </div>
-    {% else %}
-        <div class="empty-state">
-            <div class="empty-icon">👥</div>
-            <div class="empty-text">No groups yet</div>
-            <div class="empty-subtext">Create a group to start sharing expenses with friends and family.</div>
-            <button class="btn btn-primary" onclick="openCreateGroupModal()">Create Your First Group</button>
-        </div>
-    {% endif %}
-</div>
+      </div>
+      <div class="group-card-meta">
+        <span class="group-date">{{ group.created_at.strftime('%d %b %Y') }}</span>
+        <span class="members-badge">👥 {{ group.members|length }} member{{ '' if group.members|length == 1 else 's' }}</span>
+      </div>
+      {% if group.creator_id == current_user.id %}
+      <div class="card-actions" onclick="event.stopPropagation()">
+        <button class="card-action-btn" onclick="openEditModal({{ group.id }}, '{{ group.name|e }}', '{{ (group.description or '')|e }}')">✏️ Edit</button>
+        <button class="card-action-btn danger" onclick="confirmDelete({{ group.id }}, '{{ group.name|e }}')">🗑️ Delete</button>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">👥</div>
+    <h2>No groups yet</h2>
+    <p>Create a group to start splitting expenses with friends, housemates, or family.</p>
+    <button class="create-group-btn" onclick="openCreateModal()">Create Your First Group</button>
+  </div>
+  {% endif %}
+</section>
+
+<!-- Backdrops -->
+<div id="createBackdrop" class="modal-backdrop" onclick="closeCreateModal()"></div>
+<div id="editBackdrop"   class="modal-backdrop" onclick="closeEditModal()"></div>
 
 <!-- Create Group Modal -->
-<div id="createGroupModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Create New Group</h2>
-            <button class="modal-close" onclick="closeCreateGroupModal()">&times;</button>
-        </div>
-        <form id="createGroupForm">
-            <div class="form-group">
-                <label for="groupName">Group Name *</label>
-                <input type="text" id="groupName" placeholder="e.g., Summer Trip, Roommates" required>
-            </div>
-            <div class="form-group">
-                <label for="groupDescription">Description (Optional)</label>
-                <textarea id="groupDescription" placeholder="Add details about this group..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>Members *</label>
-                <div class="search-wrapper">
-                    <input type="text" id="memberSearch" placeholder="Search by username or email…" autocomplete="off" oninput="searchUsers(this.value)">
-                    <div class="search-dropdown" id="searchDropdown"></div>
-                </div>
-                <div class="selected-members" id="selectedMembers"></div>
-                <small style="color:#7f8c8d;font-size:12px;margin-top:4px;display:block;">Search and select at least one member.</small>
-            </div>
-            <div class="modal-buttons">
-                <button type="submit" class="btn-save">Create Group</button>
-                <button type="button" class="btn-cancel" onclick="closeCreateGroupModal()">Cancel</button>
-            </div>
-        </form>
+<div id="createModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>✚ Create New Group</h2>
+      <button class="modal-close" onclick="closeCreateModal()">&times;</button>
     </div>
+    <div class="modal-form">
+      <div class="modal-form-group">
+        <label>Group Name *</label>
+        <input type="text" id="groupName" placeholder="e.g. Summer Trip, Housemates">
+      </div>
+      <div class="modal-form-group">
+        <label>Description <span style="color:#aab4c4;font-weight:600;font-size:11px;">(optional)</span></label>
+        <textarea id="groupDescription" placeholder="What is this group for?"></textarea>
+      </div>
+      <div class="modal-form-group">
+        <label>Add Members</label>
+        <div class="search-wrapper">
+          <input type="text" id="memberSearch" placeholder="Search by username or email…" autocomplete="off" oninput="searchUsers(this.value)">
+          <div class="search-dropdown" id="searchDropdown"></div>
+        </div>
+        <div class="selected-members" id="selectedMembers"></div>
+        <small style="color:#aab4c4;font-size:11px;margin-top:6px;display:block;">Search for registered users to add to the group.</small>
+      </div>
+      <div class="modal-form-actions">
+        <button class="btn-secondary" onclick="closeCreateModal()">Cancel</button>
+        <button class="btn-primary" onclick="submitCreateGroup()">Create Group</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Group Modal -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>✎ Edit Group</h2>
+      <button class="modal-close" onclick="closeEditModal()">&times;</button>
+    </div>
+    <div class="modal-form">
+      <div class="modal-form-group">
+        <label>Group Name *</label>
+        <input type="text" id="editGroupName">
+      </div>
+      <div class="modal-form-group">
+        <label>Description</label>
+        <textarea id="editGroupDescription"></textarea>
+      </div>
+      <div class="modal-form-actions">
+        <button class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+        <button class="btn-primary" onclick="submitEditGroup()">Save Changes</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-    function openCreateGroupModal() {
-        document.getElementById('createGroupModal').classList.add('active');
+let selectedMembers = [];
+
+function openModal(id, bdId)  { document.getElementById(id).classList.add('active'); document.getElementById(bdId).classList.add('active'); document.body.style.overflow='hidden'; }
+function closeModal(id, bdId) { document.getElementById(id).classList.remove('active'); document.getElementById(bdId).classList.remove('active'); document.body.style.overflow=''; }
+
+function openCreateModal()  { openModal('createModal','createBackdrop'); }
+function closeCreateModal() {
+  closeModal('createModal','createBackdrop');
+  document.getElementById('groupName').value = '';
+  document.getElementById('groupDescription').value = '';
+  document.getElementById('memberSearch').value = '';
+  selectedMembers = []; renderTags();
+  document.getElementById('searchDropdown').classList.remove('open');
+}
+
+async function searchUsers(q) {
+  const dd = document.getElementById('searchDropdown');
+  if (q.length < 2) { dd.classList.remove('open'); return; }
+  try {
+    const res = await fetch(`/groups/search-users?q=${encodeURIComponent(q)}`);
+    const users = await res.json();
+    if (!users.length) {
+      dd.innerHTML = '<div class="search-result" style="color:#aab4c4;">No users found</div>';
+    } else {
+      dd.innerHTML = users.map(u => `
+        <div class="search-result" onclick="selectMember(${u.id},'${u.username}','${u.email}')">
+          <span class="result-name">${u.username}</span>
+          <span class="result-email">${u.email}</span>
+        </div>`).join('');
     }
+    dd.classList.add('open');
+  } catch(e) { dd.classList.remove('open'); }
+}
 
-    let selectedMembers = []; // {id, username, email} or {id:null, username, email: identifier}
+function selectMember(id, username, email) {
+  if (selectedMembers.find(m => m.id === id)) return;
+  selectedMembers.push({id, username, email});
+  renderTags();
+  document.getElementById('memberSearch').value = '';
+  document.getElementById('searchDropdown').classList.remove('open');
+}
+function removeMemberTag(id) { selectedMembers = selectedMembers.filter(m => m.id !== id); renderTags(); }
+function renderTags() {
+  document.getElementById('selectedMembers').innerHTML =
+    selectedMembers.map(m => `<span class="member-tag">${m.username}<button onclick="removeMemberTag(${m.id})">&times;</button></span>`).join('');
+}
+document.addEventListener('click', e => { if (!e.target.closest('.search-wrapper')) document.getElementById('searchDropdown').classList.remove('open'); });
 
-    async function searchUsers(q) {
-        const dropdown = document.getElementById('searchDropdown');
-        if (q.length < 2) { dropdown.classList.remove('open'); return; }
-        try {
-            const res = await fetch(`/groups/search-users?q=${encodeURIComponent(q)}`);
-            const users = await res.json();
-            if (!users.length) { dropdown.innerHTML = '<div class="search-result" style="color:#95a5a6;">No users found</div>'; dropdown.classList.add('open'); return; }
-            dropdown.innerHTML = users.map(u => `
-                <div class="search-result" onclick="selectMember(${u.id},'${u.username}','${u.email}')">
-                    <strong>${u.username}</strong>
-                    <span class="result-email">${u.email}</span>
-                </div>`).join('');
-            dropdown.classList.add('open');
-        } catch(e) { dropdown.classList.remove('open'); }
-    }
-
-    function selectMember(id, username, email) {
-        if (selectedMembers.find(m => m.id === id)) return;
-        selectedMembers.push({id, username, email});
-        renderSelectedMembers();
-        document.getElementById('memberSearch').value = '';
-        document.getElementById('searchDropdown').classList.remove('open');
-    }
-
-    function removeMember(id) {
-        selectedMembers = selectedMembers.filter(m => m.id !== id);
-        renderSelectedMembers();
-    }
-
-    function renderSelectedMembers() {
-        const container = document.getElementById('selectedMembers');
-        container.innerHTML = selectedMembers.map(m => `
-            <span class="member-tag">${m.username} <button onclick="removeMember(${m.id})">&times;</button></span>`).join('');
-    }
-
-    document.addEventListener('click', e => {
-        if (!e.target.closest('.search-wrapper')) {
-            document.getElementById('searchDropdown').classList.remove('open');
-        }
+async function submitCreateGroup() {
+  const name = document.getElementById('groupName').value.trim();
+  const description = document.getElementById('groupDescription').value.trim();
+  if (!name) { alert('Group name is required.'); return; }
+  try {
+    const res = await fetch('/groups/create', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token() }}'},
+      body: JSON.stringify({ name, description, members: selectedMembers.map(m => m.username) })
     });
+    const data = await res.json();
+    if (data.success) { closeCreateModal(); location.reload(); }
+    else alert('Error: ' + data.message);
+  } catch(e) { alert('Error: ' + e.message); }
+}
 
-    function closeCreateGroupModal() {
-        document.getElementById('createGroupModal').classList.remove('active');
-        document.getElementById('createGroupForm').reset();
-        selectedMembers = [];
-        renderSelectedMembers();
-        document.getElementById('searchDropdown').classList.remove('open');
-    }
+let editingGroupId = null;
+function openEditModal(id, name, description) {
+  editingGroupId = id;
+  document.getElementById('editGroupName').value = name;
+  document.getElementById('editGroupDescription').value = description;
+  openModal('editModal','editBackdrop');
+}
+function closeEditModal() { closeModal('editModal','editBackdrop'); editingGroupId = null; }
 
-    document.getElementById('createGroupForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const name = document.getElementById('groupName').value.trim();
-        const description = document.getElementById('groupDescription').value.trim();
-
-        if (!selectedMembers.length) { alert('Please add at least one member.'); return; }
-
-        const members = selectedMembers.map(m => m.username);
-
-        try {
-            const response = await fetch('{{ url_for("groups.create_group") }}', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' },
-                body: JSON.stringify({ name, description, members })
-            });
-            const data = await response.json();
-            if (data.success) { closeCreateGroupModal(); location.reload(); }
-            else alert('Error: ' + data.message);
-        } catch (error) { alert('An error occurred: ' + error.message); }
+async function submitEditGroup() {
+  if (!editingGroupId) return;
+  const name = document.getElementById('editGroupName').value.trim();
+  const description = document.getElementById('editGroupDescription').value.trim();
+  if (!name) { alert('Group name is required.'); return; }
+  try {
+    const res = await fetch(`/groups/${editingGroupId}/edit`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-CSRFToken':'{{ csrf_token() }}'},
+      body: JSON.stringify({ name, description })
     });
+    const data = await res.json();
+    if (data.success) { closeEditModal(); location.reload(); }
+    else alert('Error: ' + data.message);
+  } catch(e) { alert('Error: ' + e.message); }
+}
 
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-        const modal = document.getElementById('createGroupModal');
-        if (event.target === modal) modal.classList.remove('active');
-        const editModal = document.getElementById('editGroupModal');
-        if (event.target === editModal) editModal.classList.remove('active');
-    }
-
-    // --- Edit Group ---
-    let editingGroupId = null;
-
-    function openEditGroupModal(id, name, description) {
-        editingGroupId = id;
-        document.getElementById('editGroupName').value = name;
-        document.getElementById('editGroupDescription').value = description;
-        document.getElementById('editGroupModal').classList.add('active');
-    }
-
-    function closeEditGroupModal() {
-        document.getElementById('editGroupModal').classList.remove('active');
-        editingGroupId = null;
-    }
-
-    document.getElementById('editGroupForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        if (!editingGroupId) return;
-        const name = document.getElementById('editGroupName').value.trim();
-        const description = document.getElementById('editGroupDescription').value.trim();
-        try {
-            const res = await fetch(`/groups/${editingGroupId}/edit`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' },
-                body: JSON.stringify({ name, description })
-            });
-            const data = await res.json();
-            if (data.success) { closeEditGroupModal(); location.reload(); }
-            else alert('Error: ' + data.message);
-        } catch(e) { alert('Error: ' + e.message); }
+async function confirmDelete(id, name) {
+  if (!confirm(`Delete group "${name}"? All expenses and splits will be removed. This cannot be undone.`)) return;
+  try {
+    const res = await fetch(`/groups/${id}/delete`, {
+      method:'POST', headers:{'X-CSRFToken':'{{ csrf_token() }}'}
     });
+    const data = await res.json();
+    if (data.success) location.reload();
+    else alert('Error: ' + data.message);
+  } catch(e) { alert('Error: ' + e.message); }
+}
 
-    // --- Delete Group ---
-    async function confirmDeleteGroup(id, name) {
-        if (!confirm(`Delete group "${name}"? This will remove all expenses and splits. This cannot be undone.`)) return;
-        try {
-            const res = await fetch(`/groups/${id}/delete`, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': '{{ csrf_token() }}' }
-            });
-            const data = await res.json();
-            if (data.success) location.reload();
-            else alert('Error: ' + data.message);
-        } catch(e) { alert('Error: ' + e.message); }
-    }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeCreateModal(); closeEditModal(); } });
 </script>
-
-<!-- Edit Group Modal -->
-<div id="editGroupModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Edit Group</h2>
-            <button class="modal-close" onclick="closeEditGroupModal()">&times;</button>
-        </div>
-        <form id="editGroupForm">
-            <div class="form-group">
-                <label>Group Name *</label>
-                <input type="text" id="editGroupName" required>
-            </div>
-            <div class="form-group">
-                <label>Description</label>
-                <textarea id="editGroupDescription"></textarea>
-            </div>
-            <div class="modal-buttons">
-                <button type="submit" class="btn-save">Save Changes</button>
-                <button type="button" class="btn-cancel" onclick="closeEditGroupModal()">Cancel</button>
-            </div>
-        </form>
-    </div>
-</div>
-
 {% endblock %}

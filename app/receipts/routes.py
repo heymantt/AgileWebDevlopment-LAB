@@ -279,7 +279,16 @@ def archive():
 @receipts_bp.route("/<int:receipt_id>")
 @login_required
 def receipt_detail(receipt_id):
-    receipt = Receipt.query.filter_by(id=receipt_id, user_id=current_user.id).first_or_404()
+    from flask import abort
+    # Allow viewing if user owns it, or is a member of the group it belongs to
+    receipt = Receipt.query.filter_by(id=receipt_id, user_id=current_user.id).first()
+    if receipt is None:
+        receipt = Receipt.query.filter_by(id=receipt_id).first_or_404()
+        is_member = GroupMember.query.filter_by(
+            group_id=receipt.group_id, user_id=current_user.id
+        ).first() if receipt.group_id else None
+        if not is_member:
+            abort(403)
     return render_template(
         "receipts/detail.html",
         page_title="Receipt Detail",

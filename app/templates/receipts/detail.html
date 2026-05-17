@@ -66,7 +66,7 @@
                 <div class="pdf-icon">📄</div>
                 <p>PDF receipt uploaded</p>
                 <a 
-                  href="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}" 
+                  href="{{ url_for('static', filename='uploads/receipts/' ~ receipt.image_filename) }}" 
                   target="_blank"
                   class="view-file-btn"
                 >
@@ -75,14 +75,14 @@
               </div>
             {% else %}
               <img 
-                src="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}" 
+                src="{{ url_for('static', filename='uploads/receipts/' ~ receipt.image_filename) }}" 
                 alt="Receipt image"
               >
             {% endif %}
           </div>
 
           <a 
-            href="{{ url_for('static', filename='uploads/' ~ receipt.image_filename) }}" 
+            href="{{ url_for('static', filename='uploads/receipts/' ~ receipt.image_filename) }}" 
             target="_blank"
             class="view-file-btn full-width"
           >
