@@ -149,6 +149,7 @@ def index():
         )
 
         if file and file.filename and image_filename and save_path:
+            os.makedirs(current_app.config["RECEIPT_UPLOAD_FOLDER"], exist_ok=True)
             file.save(save_path)
 
         db.session.add(receipt)
