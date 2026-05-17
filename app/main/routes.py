@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from sqlalchemy import func
-from datetime import date
+from datetime import date, timedelta
+import json
 
 from app.extensions import db
 from app.models import User, Receipt, Income
@@ -18,12 +19,42 @@ def dashboard():
     today = date.today()
     month_start = today.replace(day=1)
 
-    monthly_income = (
-        Income.query
-        .filter(Income.user_id == current_user.id)
-        .filter(Income.income_date >= month_start)
-        .with_entities(func.coalesce(func.sum(Income.amount), 0))
-        .scalar()
+    # Helper function to check if income should be counted for a given month
+    def should_count_income_for_month(item, target_month_start, target_month_end):
+        """Check if income should be counted in the target month."""
+        if not item.start_date:
+            return False
+        
+        # Check if income has ended before the target month
+        if item.end_date and item.end_date < target_month_start:
+            return False
+        
+        # Get frequency value (handle case variations)
+        frequency = (item.frequency or "").lower().strip()
+        
+        # For one-time income, count if it falls within the target month
+        if frequency == "one-time":
+            income_date = item.income_date or item.start_date
+            return target_month_start <= income_date < target_month_end
+        
+        # For recurring income, count if:
+        # 1. It started on or before the end of target month
+        # 2. It hasn't ended before the start of target month
+        # 3. Frequency is one of the recurring types
+        if (item.start_date < target_month_end and 
+            frequency in ["daily", "weekly", "monthly", "yearly"]):
+            return True
+        
+        return False
+
+    # Calculate current month income
+    all_incomes = Income.query.filter_by(user_id=current_user.id).all()
+    month_end = today.replace(day=28) + timedelta(days=4)
+    month_end = month_end.replace(day=1)  # First day of next month
+    
+    monthly_income = sum(
+        item.amount for item in all_incomes
+        if should_count_income_for_month(item, month_start, month_end)
     )
 
     monthly_expenses = (
@@ -99,6 +130,65 @@ def dashboard():
     from app.models import Group
     active_groups = Group.query.filter_by(creator_id=current_user.id).count()
 
+    # --- Daily spend for the last 14 days (sparkline) ---
+    fourteen_days_ago = today - timedelta(days=13)
+    daily_rows = (
+        Receipt.query
+        .filter(Receipt.user_id == current_user.id)
+        .filter(Receipt.expense_date >= fourteen_days_ago)
+        .with_entities(Receipt.expense_date, func.sum(Receipt.amount))
+        .group_by(Receipt.expense_date)
+        .order_by(Receipt.expense_date)
+        .all()
+    )
+    daily_map = {str(r[0]): float(r[1]) for r in daily_rows}
+    daily_labels = []
+    daily_values = []
+    for i in range(14):
+        d = fourteen_days_ago + timedelta(days=i)
+        daily_labels.append(d.strftime("%b %d"))
+        daily_values.append(daily_map.get(str(d), 0))
+
+    # --- Last 6 months income vs expenses (bar chart) ---
+    monthly_labels = []
+    monthly_expense_series = []
+    monthly_income_series = []
+    for i in range(5, -1, -1):
+        # calculate first day of month i months ago
+        yr = today.year
+        mo = today.month - i
+        while mo <= 0:
+            mo += 12
+            yr -= 1
+        m_start = date(yr, mo, 1)
+        if mo == 12:
+            m_end = date(yr + 1, 1, 1)
+        else:
+            m_end = date(yr, mo + 1, 1)
+
+        m_exp = (
+            Receipt.query
+            .filter(Receipt.user_id == current_user.id)
+            .filter(Receipt.expense_date >= m_start)
+            .filter(Receipt.expense_date < m_end)
+            .with_entities(func.coalesce(func.sum(Receipt.amount), 0))
+            .scalar()
+        )
+        
+        # Calculate income for this month using the same logic
+        m_inc = sum(
+            item.amount for item in all_incomes
+            if should_count_income_for_month(item, m_start, m_end)
+        )
+        
+        monthly_labels.append(m_start.strftime("%b %Y"))
+        monthly_expense_series.append(float(m_exp))
+        monthly_income_series.append(float(m_inc))
+
+    # Category chart data
+    chart_category_labels = [r[0] for r in category_totals]
+    chart_category_values = [float(r[1]) for r in category_totals]
+
     return render_template(
         "dashboard.html",
         page_title="Dashboard",
@@ -115,12 +205,31 @@ def dashboard():
         top_category_percentage=top_category_percentage,
         high_value_receipts=high_value_receipts,
         active_groups=active_groups,
+        # chart data
+        daily_labels=json.dumps(daily_labels),
+        daily_values=json.dumps(daily_values),
+        monthly_labels=json.dumps(monthly_labels),
+        monthly_expense_series=json.dumps(monthly_expense_series),
+        monthly_income_series=json.dumps(monthly_income_series),
+        chart_category_labels=json.dumps(chart_category_labels),
+        chart_category_values=json.dumps(chart_category_values),
     )
 
 @main_bp.route("/profile")
 @login_required
 def profile():
-    return render_template("profile.html", page_title="Profile")
+    from app.models import Group, GroupMember
+    receipt_count = len(current_user.receipts)
+    group_count = Group.query.join(GroupMember, Group.id == GroupMember.group_id).filter(
+        GroupMember.user_id == current_user.id
+    ).count()
+    return render_template(
+        "profile.html",
+        page_title="Profile",
+        receipt_count=receipt_count,
+        group_count=group_count,
+        total_points=current_user.total_points,
+    )
 
 
 @main_bp.route("/profile/update", methods=["POST"])
@@ -128,7 +237,7 @@ def profile():
 def update_profile():
     """Update user profile information."""
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
         username = data.get('username', '').strip()
         
         if not username:
@@ -154,7 +263,7 @@ def update_profile():
 def change_password():
     """Change user password."""
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
         old_password = data.get('old_password', '')
         new_password = data.get('new_password', '')
         confirm_password = data.get('confirm_password', '')

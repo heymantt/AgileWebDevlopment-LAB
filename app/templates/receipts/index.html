@@ -1,479 +1,533 @@
 {% extends "base.html" %}
-
 {% block content %}
+<style>
+  .exp-page { max-width:1200px; margin:0 auto; padding:32px 24px 60px; }
 
-<section class="expenses-page">
-  <div class="expenses-container">
+  /* ── Header ── */
+  .exp-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:32px; flex-wrap:wrap; gap:16px; }
+  .exp-header-left .page-label { font-size:12px; font-weight:700; color:#667eea; letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px; }
+  .exp-header-left h1 { font-size:32px; font-weight:800; color:#1a1f36; margin:0 0 4px; letter-spacing:-.5px; }
+  .exp-header-left p { font-size:14px; color:#8792a2; margin:0; }
+  .add-expense-btn {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:12px 24px; background:linear-gradient(135deg,#667eea,#764ba2);
+    color:white; border:none; border-radius:12px; font-size:14px; font-weight:700;
+    cursor:pointer; transition:.2s; box-shadow:0 4px 16px rgba(102,126,234,.4);
+    font-family:'DM Sans',sans-serif; letter-spacing:.02em;
+  }
+  .add-expense-btn:hover { opacity:.92; transform:translateY(-2px); box-shadow:0 8px 24px rgba(102,126,234,.45); }
+  .btn-icon { font-size:18px; line-height:1; font-weight:900; }
 
-    <!-- Header Section -->
-    <div class="expenses-header">
-      <div>
-        <p class="page-label">Expense Tracking</p>
-        <h1>Expenses</h1>
-        <p>Manage all your expenses in one place. Add new expenses and track your spending.</p>
-      </div>
-      <button type="button" id="open-expense-modal-btn" class="add-expense-btn">
-        <span class="btn-icon">+</span> Add Expense
-      </button>
+  /* ── Summary strip ── */
+  .summary-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+  .summary-chip {
+    background:white; border-radius:12px; padding:16px 18px;
+    border:1px solid #f0f2f7; box-shadow:0 2px 8px rgba(0,0,0,.04);
+    display:flex; flex-direction:column; gap:4px;
+  }
+  .summary-chip .chip-label { font-size:11px; font-weight:700; color:#aab4c4; text-transform:uppercase; letter-spacing:.06em; }
+  .summary-chip .chip-value { font-size:22px; font-weight:800; color:#1a1f36; font-family:'DM Mono',monospace; }
+  .summary-chip .chip-value.red { color:#ef4444; }
+  .summary-chip .chip-value.purple { color:#667eea; }
+
+  /* ── Filter card ── */
+  .filter-card {
+    background:white; border-radius:14px; padding:18px 22px;
+    border:1px solid #f0f2f7; box-shadow:0 2px 10px rgba(0,0,0,.05);
+    margin-bottom:20px;
+  }
+  .filter-form { display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap; }
+  .filter-group { display:flex; flex-direction:column; gap:5px; flex:1; min-width:140px; }
+  .filter-group label { font-size:11px; font-weight:700; color:#8792a2; letter-spacing:.05em; text-transform:uppercase; }
+  .filter-group input, .filter-group select {
+    padding:9px 12px; border:1.5px solid #e8ecf4; border-radius:9px;
+    font-size:13px; font-family:'DM Sans',sans-serif; color:#1a1f36;
+    background:white; transition:border-color .2s;
+  }
+  .filter-group input:focus, .filter-group select:focus { outline:none; border-color:#667eea; box-shadow:0 0 0 3px rgba(102,126,234,.1); }
+  .filter-actions { display:flex; gap:8px; align-items:flex-end; }
+  .filter-btn { padding:9px 18px; background:#667eea; color:white; border:none; border-radius:9px; font-size:13px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; transition:.15s; }
+  .filter-btn:hover { background:#5568d3; }
+  .clear-filter-btn { padding:9px 14px; background:#f0f2f7; color:#8792a2; border-radius:9px; font-size:13px; font-weight:700; text-decoration:none; transition:.15s; }
+  .clear-filter-btn:hover { background:#e3e8ef; color:#1a1f36; }
+
+  /* ── Table card ── */
+  .table-card {
+    background:white; border-radius:16px; padding:24px;
+    border:1px solid #f0f2f7; box-shadow:0 2px 12px rgba(0,0,0,.06);
+  }
+  .table-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px; }
+  .table-top h2 { font-size:16px; font-weight:800; color:#1a1f36; margin:0 0 3px; }
+  .table-top p { font-size:13px; color:#8792a2; margin:0; }
+
+  .exp-table { width:100%; border-collapse:collapse; }
+  .exp-table th { font-size:11px; font-weight:700; color:#8792a2; text-transform:uppercase; letter-spacing:.06em; padding:0 14px 12px 0; text-align:left; border-bottom:2px solid #f0f2f7; }
+  .exp-table td { padding:14px 14px 14px 0; font-size:14px; color:#1a1f36; border-bottom:1px solid #f8fafc; vertical-align:middle; }
+  .exp-table tbody tr:last-child td { border-bottom:none; }
+  .exp-table tbody tr { transition:background .12s; cursor:default; }
+  .exp-table tbody tr:hover td { background:#fafbff; }
+
+  .cat-pill { display:inline-block; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; background:#f0f2ff; color:#667eea; }
+  .freq-badge { display:inline-block; padding:4px 11px; border-radius:20px; font-size:11px; font-weight:700; background:#f0fdf4; color:#16a34a; }
+  .freq-badge.one-time { background:#f8fafc; color:#8792a2; }
+  .amount-mono { font-family:'DM Mono',monospace; font-size:14px; font-weight:700; color:#1a1f36; }
+  .share-label { font-size:10px; color:#aab4c4; display:block; margin-top:2px; }
+
+  .action-cell { display:flex; gap:6px; align-items:center; }
+  .act { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:8px; font-size:15px; text-decoration:none; border:1px solid #f0f2f7; cursor:pointer; transition:.15s; background:#fafbff; color:#1a1f36; }
+  .act:hover { transform:scale(1.08); }
+  .act.view:hover { background:#e8f0ff; border-color:#c7d4ff; color:#667eea; }
+  .act.edit:hover { background:#fef9e7; border-color:#fde68a; color:#f59e0b; }
+  .act.del { background:#fff5f5; border-color:#fecaca; }
+  .act.del:hover  { background:#fff0f0; border-color:#ef4444; color:#ef4444; }
+
+  /* ── Empty state ── */
+  .empty-state {
+    text-align:center; padding:72px 24px;
+    background:white; border-radius:16px;
+    border:1px solid #f0f2f7; box-shadow:0 2px 12px rgba(0,0,0,.06);
+  }
+  .empty-icon { font-size:56px; margin-bottom:18px; }
+  .empty-state h2 { font-size:22px; font-weight:800; color:#1a1f36; margin:0 0 10px; }
+  .empty-state p { font-size:14px; color:#8792a2; max-width:380px; margin:0 auto 24px; line-height:1.7; }
+  .no-results { padding:28px; text-align:center; font-size:14px; color:#8792a2; }
+
+  /* ── MODAL — z-index fixed: backdrop=999, content=1000 ── */
+  .modal-backdrop {
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(15,20,40,.55); backdrop-filter:blur(4px);
+    z-index:999;
+    opacity:0; visibility:hidden; transition:opacity .28s, visibility .28s;
+  }
+  .modal-backdrop.active { opacity:1; visibility:visible; }
+
+  .modal {
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+    z-index:1000;
+    opacity:0; visibility:hidden; transition:opacity .28s, visibility .28s;
+    pointer-events:none;
+  }
+  .modal.active { opacity:1; visibility:visible; pointer-events:auto; }
+
+  .modal-content {
+    background:white; border-radius:20px;
+    width:94%; max-width:540px; max-height:92vh; overflow-y:auto;
+    box-shadow:0 24px 80px rgba(0,0,0,.22);
+    padding:32px;
+    animation:modalIn .28s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes modalIn {
+    from { opacity:0; transform:scale(.94) translateY(16px); }
+    to   { opacity:1; transform:scale(1)  translateY(0); }
+  }
+  .modal-content::-webkit-scrollbar { display:none; }
+  .modal-content { -ms-overflow-style:none; scrollbar-width:none; }
+
+  .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; padding-bottom:18px; border-bottom:2px solid #f5f7ff; }
+  .modal-header h2 { font-size:20px; font-weight:800; color:#1a1f36; margin:0; letter-spacing:-.3px; }
+  .modal-close { background:none; border:none; font-size:24px; cursor:pointer; color:#aab4c4; line-height:1; padding:4px; transition:color .15s, transform .2s; border-radius:8px; }
+  .modal-close:hover { color:#1a1f36; transform:rotate(90deg); }
+
+  .modal-form { display:flex; flex-direction:column; gap:18px; }
+  .modal-form-group { display:flex; flex-direction:column; gap:6px; }
+  .modal-form-group label { font-size:12px; font-weight:700; color:#8792a2; letter-spacing:.05em; text-transform:uppercase; }
+  .modal-form-group input, .modal-form-group select, .modal-form-group textarea {
+    padding:11px 14px; border:1.5px solid #e8ecf4; border-radius:11px;
+    font-size:14px; font-family:'DM Sans',sans-serif; color:#1a1f36;
+    background:#fafbff; transition:border-color .2s, box-shadow .2s;
+  }
+  .modal-form-group input:focus, .modal-form-group select:focus, .modal-form-group textarea:focus { outline:none; border-color:#667eea; background:white; box-shadow:0 0 0 4px rgba(102,126,234,.12); }
+  .modal-form-group textarea { resize:vertical; min-height:72px; }
+  .modal-form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .field-error { font-size:12px; color:#ef4444; display:none; margin-top:2px; font-weight:600; }
+
+  .frequency-options { display:flex; gap:12px; }
+  .frequency-label {
+    display:flex; align-items:center; gap:8px; cursor:pointer;
+    font-size:14px; color:#374151; font-family:'DM Sans',sans-serif;
+    padding:11px 16px; border:1.5px solid #e8ecf4; border-radius:11px;
+    transition:.15s; flex:1; justify-content:center; font-weight:600;
+  }
+  .frequency-label:has(input:checked) { border-color:#667eea; background:#f5f7ff; color:#667eea; font-weight:700; }
+  .frequency-label input { accent-color:#667eea; }
+
+  .file-upload-box {
+    border:2px dashed #c7d4ff; border-radius:12px; padding:22px;
+    text-align:center; cursor:pointer; transition:.2s; background:#fafbff;
+  }
+  .file-upload-box:hover { border-color:#667eea; background:#f5f7ff; transform:translateY(-1px); }
+  .upload-content { display:flex; align-items:center; justify-content:center; gap:12px; }
+  .upload-icon { font-size:28px; }
+  .upload-text strong { font-size:14px; color:#1a1f36; display:block; font-weight:700; }
+  .upload-text p { font-size:12px; color:#8792a2; margin:3px 0 0; }
+  .file-name { font-size:13px; color:#667eea; font-weight:700; padding:6px; }
+
+  .section-divider { height:1px; background:#f0f2f7; margin:4px 0; }
+
+  .modal-form-actions { display:flex; gap:10px; margin-top:6px; padding-top:18px; border-top:2px solid #f5f7ff; }
+  .btn-primary {
+    flex:1; padding:13px; background:linear-gradient(135deg,#667eea,#764ba2);
+    color:white; border:none; border-radius:11px; font-size:14px; font-weight:700;
+    cursor:pointer; font-family:'DM Sans',sans-serif; transition:.2s; letter-spacing:.02em;
+  }
+  .btn-primary:hover { opacity:.92; transform:translateY(-1px); box-shadow:0 6px 18px rgba(102,126,234,.35); }
+  .btn-secondary {
+    padding:13px 20px; background:#f0f2f7; color:#8792a2; border:none;
+    border-radius:11px; font-size:14px; font-weight:700; cursor:pointer;
+    font-family:'DM Sans',sans-serif; transition:.15s;
+  }
+  .btn-secondary:hover { background:#e3e8ef; color:#1a1f36; }
+
+  @media(max-width:640px) {
+    .modal-form-row { grid-template-columns:1fr; }
+    .summary-strip { grid-template-columns:1fr; }
+  }
+</style>
+
+<section class="exp-page">
+
+  <!-- Header -->
+  <div class="exp-header">
+    <div class="exp-header-left">
+      <p class="page-label">Expense Tracking</p>
+      <h1>Expenses</h1>
+      <p>Manage and track all your one-time and recurring expenses.</p>
     </div>
+    <button type="button" id="open-expense-modal-btn" class="add-expense-btn">
+      <span class="btn-icon">+</span> Add Expense
+    </button>
+  </div>
 
-    <!-- Add Expense Modal -->
-    <div id="expense-modal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>Add New Expense</h2>
-          <button type="button" class="modal-close" id="close-modal-btn">&times;</button>
+  <!-- Summary strip (only when there are expenses) -->
+  {% if expenses %}
+  <div class="summary-strip">
+    <div class="summary-chip">
+      <span class="chip-label">Total this view</span>
+      <span class="chip-value red">${{ "%.2f"|format(expenses|sum(attribute='display_amount')) }}</span>
+    </div>
+    <div class="summary-chip">
+      <span class="chip-label">Recurring</span>
+      <span class="chip-value purple">{{ expenses|selectattr('frequency_type','equalto','recurring')|list|length }}</span>
+    </div>
+    <div class="summary-chip">
+      <span class="chip-label">One-time</span>
+      <span class="chip-value">{{ expenses|selectattr('frequency_type','equalto','one-time')|list|length }}</span>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- MODAL BACKDROP (behind modal) -->
+  <div id="modal-backdrop" class="modal-backdrop"></div>
+
+  <!-- MODAL (on top of backdrop) -->
+  <div id="expense-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>✚ Add New Expense</h2>
+        <button type="button" class="modal-close" id="close-modal-btn">&times;</button>
+      </div>
+      <form method="POST" enctype="multipart/form-data" id="expense-form" class="modal-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="modal-form-group">
+          <label for="merchant">Expense Name <span style="color:#ef4444;">*</span></label>
+          <input type="text" id="merchant" name="merchant" placeholder="e.g. Woolworths, Petrol Station" required>
+          <span class="field-error" id="merchant-error"></span>
         </div>
 
-        <form method="POST" enctype="multipart/form-data" id="expense-form" class="modal-form">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-          <!-- Expense Name -->
+        <div class="modal-form-row">
           <div class="modal-form-group">
-            <label for="merchant">Expense Name *</label>
-            <input 
-              type="text" 
-              id="merchant" 
-              name="merchant" 
-              placeholder="e.g. Woolworths, Petrol Station"
-              required
-            >
-            <span class="field-error" id="merchant-error"></span>
-          </div>
-
-          <!-- Category -->
-          <div class="modal-form-group">
-            <label for="category">Category *</label>
+            <label for="category">Category <span style="color:#ef4444;">*</span></label>
             <select id="category" name="category" required>
               <option value="">Select category</option>
-              <option value="Groceries">Groceries</option>
-              <option value="Food">Food</option>
-              <option value="Transport">Transport</option>
-              <option value="Bills">Bills</option>
-              <option value="Shopping">Shopping</option>
-              <option value="Health">Health</option>
-              <option value="Other">Other</option>
+              <option value="Groceries">🛒 Groceries</option>
+              <option value="Food">🍔 Food & Dining</option>
+              <option value="Transport">🚗 Transport</option>
+              <option value="Bills">💡 Bills & Utilities</option>
+              <option value="Shopping">🛍️ Shopping</option>
+              <option value="Health">💊 Health</option>
+              <option value="Entertainment">🎬 Entertainment</option>
+              <option value="Other">📦 Other</option>
             </select>
             <span class="field-error" id="category-error"></span>
           </div>
-
-          <!-- Two-column row for Amount and Date -->
-          <div class="modal-form-row">
-            <div class="modal-form-group">
-              <label for="amount">Amount (AUD) *</label>
-              <input 
-                type="number" 
-                id="amount" 
-                name="amount" 
-                step="0.01" 
-                min="0"
-                placeholder="0.00"
-                required
-              >
-              <span class="field-error" id="amount-error"></span>
-            </div>
-
-            <div class="modal-form-group">
-              <label for="expense_date">Date *</label>
-              <input 
-                type="date" 
-                id="expense_date" 
-                name="expense_date"
-                required
-              >
-              <span class="field-error" id="date-error"></span>
-            </div>
-          </div>
-
-          <!-- Frequency -->
           <div class="modal-form-group">
-            <label for="frequency">Frequency</label>
-            <div class="frequency-options">
-              <label class="frequency-label">
-                <input type="radio" name="frequency" value="one-time" checked id="freq-onetime">
-                <span>One-time</span>
-              </label>
-              <label class="frequency-label">
-                <input type="radio" name="frequency" value="recurring" id="freq-recurring">
-                <span>Recurring</span>
-              </label>
-            </div>
+            <label for="expense_date">Date <span style="color:#ef4444;">*</span></label>
+            <input type="date" id="expense_date" name="expense_date" required>
+            <span class="field-error" id="date-error"></span>
           </div>
+        </div>
 
-          <!-- Frequency Details (for recurring expenses) -->
-          <div id="frequency-details-group" class="modal-form-group" style="display: none;">
-            <label for="frequency_interval">Recurrence Type</label>
-            <select id="frequency_interval" name="frequency_interval">
-              <option value="">Select recurrence</option>
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-            </select>
+        <div class="modal-form-group">
+          <label for="amount">Amount (AUD) <span style="color:#ef4444;">*</span></label>
+          <input type="number" id="amount" name="amount" step="0.01" min="0.01" placeholder="0.00" required>
+          <span class="field-error" id="amount-error"></span>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="modal-form-group">
+          <label>Frequency</label>
+          <div class="frequency-options">
+            <label class="frequency-label">
+              <input type="radio" name="frequency" value="one-time" checked id="freq-onetime"> <span>One-time</span>
+            </label>
+            <label class="frequency-label">
+              <input type="radio" name="frequency" value="recurring" id="freq-recurring"> <span>Recurring</span>
+            </label>
           </div>
+        </div>
 
-          <div id="frequency-when-group" class="modal-form-group" style="display: none;">
-            <label for="frequency_details">When</label>
-            <input 
-              type="text" 
-              id="frequency_details" 
-              name="frequency_details" 
-              placeholder="e.g. Monday, 15th, Every day"
-            >
-            <small style="color: #6c7c77; margin-top: 4px; display: block;">
-              For weekly: Day name (e.g., Monday), For monthly: Day (e.g., 15th), For daily: leave blank
-            </small>
-          </div>
+        <div id="frequency-details-group" class="modal-form-group" style="display:none;">
+          <label for="frequency_interval">Recurrence Type</label>
+          <select id="frequency_interval" name="frequency_interval">
+            <option value="">Select recurrence</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
 
-          <!-- Description / Notes -->
-          <div class="modal-form-group">
-            <label for="notes">Description / Notes</label>
-            <textarea 
-              id="notes" 
-              name="notes" 
-              rows="2"
-              placeholder="Optional: e.g. weekly groceries shopping"
-            ></textarea>
-          </div>
+        <div id="frequency-when-group" class="modal-form-group" style="display:none;">
+          <label for="frequency_details">When</label>
+          <input type="text" id="frequency_details" name="frequency_details" placeholder="e.g. Monday, 15th, Every day">
+          <small style="color:#aab4c4;margin-top:3px;font-size:11px;display:block;">Weekly: day name · Monthly: day number · Daily: leave blank</small>
+        </div>
 
-          <!-- Receipt Upload -->
-          <div class="modal-form-group">
-            <label for="receipt_image">Upload Receipt</label>
-            <div class="file-upload-box" id="file-upload-box">
-              <input 
-                type="file" 
-                id="receipt_image" 
-                name="receipt_image" 
-                accept=".png,.jpg,.jpeg,.webp,.pdf"
-                style="display: none;"
-              >
-              <div class="upload-content">
-                <div class="upload-icon">📄</div>
-                <div class="upload-text">
-                  <strong>Choose a file</strong>
-                  <p>JPG, JPEG, PNG, WEBP, or PDF (Optional)</p>
-                </div>
+        <div class="section-divider"></div>
+
+        <div class="modal-form-group">
+          <label for="notes">Notes <span style="color:#aab4c4;font-weight:600;font-size:11px;">(optional)</span></label>
+          <textarea id="notes" name="notes" rows="2" placeholder="e.g. weekly grocery run at Coles"></textarea>
+        </div>
+
+        <div class="modal-form-group">
+          <label>Receipt <span style="color:#aab4c4;font-weight:600;font-size:11px;">(optional)</span></label>
+          <div class="file-upload-box" id="file-upload-box">
+            <input type="file" id="receipt_image" name="receipt_image" accept=".png,.jpg,.jpeg,.webp,.pdf" style="display:none;">
+            <div class="upload-content">
+              <div class="upload-icon">📎</div>
+              <div class="upload-text">
+                <strong>Click to attach a receipt</strong>
+                <p>JPG, PNG, WEBP or PDF</p>
               </div>
-              <div class="file-name" id="file-name" style="display: none;"></div>
             </div>
+            <div class="file-name" id="file-name" style="display:none;"></div>
           </div>
-
-          <!-- Form Actions -->
-          <div class="modal-form-actions">
-            <button type="button" class="btn-secondary" id="cancel-modal-btn">Cancel</button>
-            <button type="submit" class="btn-primary">Add Expense</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Modal Backdrop -->
-    <div id="modal-backdrop" class="modal-backdrop"></div>
-
-    <!-- Filter Section - Show if expenses exist or a filter is applied -->
-    {% if expenses or search_query or selected_category or selected_frequency %}
-    <div class="expenses-filter-card">
-      <form method="GET" class="expenses-filter-form">
-        <div class="filter-group">
-          <label for="search-merchant">Search merchant</label>
-          <input
-            type="text"
-            id="search-merchant"
-            name="q"
-            placeholder="e.g. Woolworths"
-            value="{{ search_query or '' }}"
-          >
         </div>
 
-        <div class="filter-group">
-          <label for="filter-category">Category</label>
-          <select id="filter-category" name="category">
-            <option value="">All categories</option>
-            {% for cat in categories %}
-              <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label for="filter-frequency">Frequency</label>
-          <select id="filter-frequency" name="frequency">
-            <option value="">All types</option>
-            <option value="one-time" {% if selected_frequency == "one-time" %}selected{% endif %}>One-time</option>
-            <option value="recurring" {% if selected_frequency == "recurring" %}selected{% endif %}>Recurring</option>
-          </select>
-        </div>
-
-        <div class="filter-actions">
-          <button type="submit" class="filter-btn">Filter</button>
-          <a href="{{ url_for('receipts.index') }}" class="clear-filter-btn">Clear</a>
+        <div class="modal-form-actions">
+          <button type="button" class="btn-secondary" id="cancel-modal-btn">Cancel</button>
+          <button type="submit" class="btn-primary">Save Expense</button>
         </div>
       </form>
     </div>
-    {% endif %}
+  </div>
 
-    <!-- Expenses List Section - Show if expenses exist or a filter is applied -->
-    {% if expenses or search_query or selected_category or selected_frequency %}
-    <div class="expenses-table-card">
-      <div class="table-top">
-        <div>
-          <h2>Your Expenses</h2>
-          {% if expenses %}
-            <p>{{ expenses|length }} expense{{ '' if expenses|length == 1 else 's' }} found</p>
-          {% else %}
-            <p>No expenses found</p>
-          {% endif %}
-        </div>
+  <!-- Filter -->
+  {% if expenses or search_query or selected_category or selected_frequency %}
+  <div class="filter-card">
+    <form method="GET" class="filter-form">
+      <div class="filter-group">
+        <label for="search-merchant">Search</label>
+        <input type="text" id="search-merchant" name="q" placeholder="e.g. Woolworths" value="{{ search_query or '' }}">
       </div>
+      <div class="filter-group">
+        <label for="filter-category">Category</label>
+        <select id="filter-category" name="category">
+          <option value="">All categories</option>
+          {% for cat in categories %}
+            <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-frequency">Type</label>
+        <select id="filter-frequency" name="frequency">
+          <option value="">All types</option>
+          <option value="one-time" {% if selected_frequency == "one-time" %}selected{% endif %}>One-time</option>
+          <option value="recurring" {% if selected_frequency == "recurring" %}selected{% endif %}>Recurring</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button type="submit" class="filter-btn">Filter</button>
+        <a href="{{ url_for('receipts.index') }}" class="clear-filter-btn">Clear</a>
+      </div>
+    </form>
+  </div>
+  {% endif %}
 
-      {% if expenses %}
-      <div class="expenses-table-wrapper">
-        <table class="expenses-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Merchant</th>
-              <th>Category</th>
-              <th>Amount</th>
-              <th>Frequency</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {% for expense in expenses %}
-            <tr>
-              <td>{{ expense.expense_date.strftime('%d/%m/%Y') }}</td>
-              <td>
-                <strong>{{ expense.merchant }}</strong>
-              </td>
-              <td>
-                <span class="category-pill">{{ expense.category }}</span>
-              </td>
-              <td class="amount-cell">
-                ${{ "%.2f"|format(expense.display_amount) }}
-                {% if expense.is_group_split %}<span style="font-size:11px;color:#95a5a6;display:block;">your share</span>{% endif %}
-              </td>
-              <td>
-                {% if expense.frequency_type == 'recurring' %}
-                  <span class="frequency-badge">{{ expense.frequency_interval|capitalize }}</span>
-                {% else %}
-                  <span class="frequency-badge one-time">One-time</span>
-                {% endif %}
-              </td>
-              <td class="actions-cell">
-                <a
-                  href="{{ url_for('receipts.receipt_detail', receipt_id=expense.id) }}"
-                  class="action-btn view-btn"
-                  title="View details"
-                >
-                  👁
-                </a>
-                <a
-                  href="{{ url_for('receipts.edit_receipt', receipt_id=expense.id) }}"
-                  class="action-btn edit-btn"
-                  title="Edit expense"
-                >
-                  ✎
-                </a>
-                <button
-                  type="button"
-                  class="action-btn delete-btn"
-                  data-receipt-id="{{ expense.id }}"
-                  title="Delete expense"
-                >
-                  🗑
-                </button>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+  <!-- Table or empty -->
+  {% if expenses or search_query or selected_category or selected_frequency %}
+  <div class="table-card">
+    <div class="table-top">
+      <div>
+        <h2>Your Expenses</h2>
+        <p>{% if expenses %}{{ expenses|length }} expense{{ '' if expenses|length == 1 else 's' }} found{% else %}No expenses match your filters{% endif %}</p>
       </div>
-      {% else %}
-      <div class="no-results-message">
-        <p>Try adjusting your filters or search term to find expenses</p>
-      </div>
-      {% endif %}
+    </div>
+    {% if expenses %}
+    <div style="overflow-x:auto;">
+      <table class="exp-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Merchant</th>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Type</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for expense in expenses %}
+          <tr>
+            <td style="color:#8792a2;font-size:13px;white-space:nowrap;">{{ expense.expense_date.strftime('%d %b %Y') }}</td>
+            <td><strong>{{ expense.merchant }}</strong></td>
+            <td><span class="cat-pill">{{ expense.category }}</span></td>
+            <td>
+              <span class="amount-mono">${{ "%.2f"|format(expense.display_amount) }}</span>
+              {% if expense.is_group_split %}<span class="share-label">your share</span>{% endif %}
+            </td>
+            <td>
+              {% if expense.frequency_type == 'recurring' %}
+                <span class="freq-badge">🔄 {{ expense.frequency_interval|capitalize if expense.frequency_interval else 'Recurring' }}</span>
+              {% else %}
+                <span class="freq-badge one-time">One-time</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="action-cell">
+                <a href="{{ url_for('receipts.receipt_detail', receipt_id=expense.id) }}" class="act view" title="View">👁</a>
+                <a href="{{ url_for('receipts.edit_receipt', receipt_id=expense.id) }}" class="act edit" title="Edit">✎</a>
+                <button type="button" class="act del delete-btn" data-receipt-id="{{ expense.id }}" title="Delete">🗑</button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
     {% else %}
-    <!-- Empty State -->
-    <div class="expenses-empty-state">
-      <div class="empty-state-content">
-        <div class="empty-state-icon">📋</div>
-        <h2>No expenses yet</h2>
-        <p>You haven't added any expenses. Click the "Add Expense" button above to get started tracking your spending!</p>
-      </div>
-    </div>
+    <div class="no-results">No expenses match your filters. <a href="{{ url_for('receipts.index') }}" style="color:#667eea;font-weight:700;">Clear filters</a></div>
     {% endif %}
-
   </div>
+
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">💸</div>
+    <h2>No expenses yet</h2>
+    <p>Start tracking your spending by adding your first expense. You can upload a receipt too!</p>
+    <button type="button" id="empty-add-btn" class="add-expense-btn">+ Add your first expense</button>
+  </div>
+  {% endif %}
+
 </section>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Modal elements
-    const modal = document.getElementById('expense-modal');
-    const backdrop = document.getElementById('modal-backdrop');
-    const openBtn = document.getElementById('open-expense-modal-btn');
-    const closeBtn = document.getElementById('close-modal-btn');
-    const cancelBtn = document.getElementById('cancel-modal-btn');
-    const expenseForm = document.getElementById('expense-form');
-    const fileUploadBox = document.getElementById('file-upload-box');
-    const fileInput = document.getElementById('receipt_image');
-    const fileName = document.getElementById('file-name');
-    const uploadContent = fileUploadBox.querySelector('.upload-content');
+document.addEventListener('DOMContentLoaded', function() {
+  const modal    = document.getElementById('expense-modal');
+  const backdrop = document.getElementById('modal-backdrop');
+  const openBtn  = document.getElementById('open-expense-modal-btn');
+  const emptyBtn = document.getElementById('empty-add-btn');
+  const closeBtn = document.getElementById('close-modal-btn');
+  const cancelBtn = document.getElementById('cancel-modal-btn');
+  const expenseForm = document.getElementById('expense-form');
+  const fileUploadBox = document.getElementById('file-upload-box');
+  const fileInput = document.getElementById('receipt_image');
+  const fileName  = document.getElementById('file-name');
+  const uploadContent = fileUploadBox.querySelector('.upload-content');
+  const freqOnetime   = document.getElementById('freq-onetime');
+  const freqRecurring = document.getElementById('freq-recurring');
+  const freqDetailsGroup = document.getElementById('frequency-details-group');
+  const freqWhenGroup    = document.getElementById('frequency-when-group');
 
-    // Frequency elements
-    const freqOnetimeRadio = document.getElementById('freq-onetime');
-    const freqRecurringRadio = document.getElementById('freq-recurring');
-    const frequencyDetailsGroup = document.getElementById('frequency-details-group');
-    const frequencyWhenGroup = document.getElementById('frequency-when-group');
+  // Set today's date
+  document.getElementById('expense_date').value = new Date().toISOString().split('T')[0];
 
-    // Open modal
-    openBtn.addEventListener('click', function() {
-      modal.classList.add('active');
-      backdrop.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    });
+  function openModal() {
+    modal.classList.add('active');
+    backdrop.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal() {
+    modal.classList.remove('active');
+    backdrop.classList.remove('active');
+    document.body.style.overflow = '';
+    expenseForm.reset();
+    resetErrors();
+    fileName.style.display = 'none';
+    uploadContent.style.display = 'flex';
+    freqDetailsGroup.style.display = 'none';
+    freqWhenGroup.style.display = 'none';
+    document.getElementById('expense_date').value = new Date().toISOString().split('T')[0];
+  }
 
-    // Close modal function
-    function closeModal() {
-      modal.classList.remove('active');
-      backdrop.classList.remove('active');
-      document.body.style.overflow = 'auto';
-      expenseForm.reset();
-      resetFormErrors();
-      fileName.style.display = 'none';
-      uploadContent.style.display = 'flex';
-      frequencyDetailsGroup.style.display = 'none';
-      frequencyWhenGroup.style.display = 'none';
+  openBtn.addEventListener('click', openModal);
+  if (emptyBtn) emptyBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', closeModal);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  freqOnetime.addEventListener('change', toggleFreq);
+  freqRecurring.addEventListener('change', toggleFreq);
+  function toggleFreq() {
+    const show = freqRecurring.checked;
+    freqDetailsGroup.style.display = show ? 'block' : 'none';
+    freqWhenGroup.style.display    = show ? 'block' : 'none';
+  }
+
+  fileUploadBox.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', function() {
+    if (this.files && this.files[0]) {
+      uploadContent.style.display = 'none';
+      fileName.textContent = '✓ ' + this.files[0].name;
+      fileName.style.display = 'block';
     }
+  });
 
-    // Close modal event listeners
-    closeBtn.addEventListener('click', closeModal);
-    cancelBtn.addEventListener('click', closeModal);
-    backdrop.addEventListener('click', closeModal);
+  expenseForm.addEventListener('submit', function(e) {
+    if (!validate()) e.preventDefault();
+  });
 
-    // Frequency toggle
-    function updateFrequencyFields() {
-      if (freqRecurringRadio.checked) {
-        frequencyDetailsGroup.style.display = 'block';
-        frequencyWhenGroup.style.display = 'block';
-      } else {
-        frequencyDetailsGroup.style.display = 'none';
-        frequencyWhenGroup.style.display = 'none';
-      }
-    }
+  function validate() {
+    resetErrors();
+    let ok = true;
+    const m = document.getElementById('merchant').value.trim();
+    if (!m) { showErr('merchant-error','Expense name is required'); ok=false; }
+    if (!document.getElementById('category').value) { showErr('category-error','Category is required'); ok=false; }
+    const a = document.getElementById('amount').value;
+    if (!a) { showErr('amount-error','Amount is required'); ok=false; }
+    else if (parseFloat(a) <= 0) { showErr('amount-error','Amount must be greater than 0'); ok=false; }
+    if (!document.getElementById('expense_date').value) { showErr('date-error','Date is required'); ok=false; }
+    return ok;
+  }
+  function showErr(id, msg) {
+    const el = document.getElementById(id);
+    if (el) { el.textContent=msg; el.style.display='block'; }
+  }
+  function resetErrors() {
+    document.querySelectorAll('.field-error').forEach(el => { el.textContent=''; el.style.display='none'; });
+  }
 
-    freqOnetimeRadio.addEventListener('change', updateFrequencyFields);
-    freqRecurringRadio.addEventListener('change', updateFrequencyFields);
-
-    // File upload handling
-    fileUploadBox.addEventListener('click', function() {
-      fileInput.click();
-    });
-
-    fileInput.addEventListener('change', function(e) {
-      if (this.files && this.files[0]) {
-        const file = this.files[0];
-        uploadContent.style.display = 'none';
-        fileName.textContent = '✓ ' + file.name;
-        fileName.style.display = 'block';
-      }
-    });
-
-    // Form validation
-    expenseForm.addEventListener('submit', function(e) {
-      if (!validateForm()) {
-        e.preventDefault();
-      }
-    });
-
-    function validateForm() {
-      resetFormErrors();
-      let isValid = true;
-
-      // Validate Expense Name
-      const merchant = document.getElementById('merchant').value.trim();
-      if (!merchant) {
-        showError('merchant-error', 'Expense name is required');
-        isValid = false;
-      }
-
-      // Validate Category
-      const category = document.getElementById('category').value;
-      if (!category) {
-        showError('category-error', 'Category is required');
-        isValid = false;
-      }
-
-      // Validate Amount
-      const amount = document.getElementById('amount').value.trim();
-      if (!amount) {
-        showError('amount-error', 'Amount is required');
-        isValid = false;
-      } else if (parseFloat(amount) <= 0) {
-        showError('amount-error', 'Amount must be greater than 0');
-        isValid = false;
-      }
-
-      // Validate Date
-      const expenseDate = document.getElementById('expense_date').value;
-      if (!expenseDate) {
-        showError('date-error', 'Date is required');
-        isValid = false;
-      }
-
-      return isValid;
-    }
-
-    function showError(elementId, message) {
-      const errorElement = document.getElementById(elementId);
-      if (errorElement) {
-        errorElement.textContent = message;
-        errorElement.style.display = 'block';
-      }
-    }
-
-    function resetFormErrors() {
-      const errorElements = document.querySelectorAll('.field-error');
-      errorElements.forEach(el => {
-        el.textContent = '';
-        el.style.display = 'none';
-      });
-    }
-
-    // Delete button handlers
-    const deleteButtons = document.querySelectorAll('.delete-btn');
-    deleteButtons.forEach(btn => {
-      btn.addEventListener('click', function() {
-        const receiptId = this.dataset.receiptId;
-        if (confirm('Are you sure you want to delete this expense? This action cannot be undone.')) {
-          // Create a form and submit it
-          const form = document.createElement('form');
-          form.method = 'POST';
-          form.action = `/receipts/${receiptId}/delete`;
-          
-          const csrfToken = document.querySelector('input[name="csrf_token"]').value;
-          const csrfInput = document.createElement('input');
-          csrfInput.type = 'hidden';
-          csrfInput.name = 'csrf_token';
-          csrfInput.value = csrfToken;
-          
-          form.appendChild(csrfInput);
-          document.body.appendChild(form);
-          form.submit();
-        }
-      });
-    });
-
-    // Close modal on Escape key
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && modal.classList.contains('active')) {
-        closeModal();
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const id = this.dataset.receiptId;
+      if (confirm('Delete this expense? This cannot be undone.')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/receipts/${id}/delete`;
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden'; csrf.name = 'csrf_token';
+        csrf.value = document.querySelector('input[name="csrf_token"]').value;
+        form.appendChild(csrf);
+        document.body.appendChild(form);
+        form.submit();
       }
     });
   });
+});
 </script>
-
 {% endblock %}

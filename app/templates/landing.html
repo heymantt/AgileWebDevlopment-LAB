@@ -2,237 +2,317 @@
 
 {% block content %}
 <style>
-    .hero {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 60px 20px;
-        border-radius: 12px;
-        text-align: center;
-        margin-bottom: 60px;
-        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
-    }
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700;800&display=swap');
 
-    .hero h1 {
-        font-size: 48px;
-        margin-bottom: 20px;
-        font-weight: 700;
-    }
+  /* ── Reset & Root ── */
+  .lp { font-family: 'DM Sans', sans-serif; color: #1a1f36; background: #f8faff; overflow-x: hidden; }
 
-    .hero p {
-        font-size: 20px;
-        margin-bottom: 30px;
-        opacity: 0.95;
-        max-width: 600px;
-        margin-left: auto;
-        margin-right: auto;
-    }
+  /* ── Hero ── */
+  .lp-hero {
+    position: relative;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    border-radius: 24px;
+    padding: 100px 48px 90px;
+    margin-bottom: 80px;
+    text-align: center;
+    overflow: hidden;
+  }
+  .lp-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 50%, rgba(102,126,234,.35) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 60% at 80% 40%, rgba(118,75,162,.35) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  /* floating orbs */
+  .lp-hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle 2px at 15% 25%, rgba(255,255,255,.25) 0%, transparent 100%),
+      radial-gradient(circle 2px at 85% 70%, rgba(255,255,255,.2) 0%, transparent 100%),
+      radial-gradient(circle 1px at 50% 15%, rgba(255,255,255,.15) 0%, transparent 100%),
+      radial-gradient(circle 1px at 70% 85%, rgba(255,255,255,.15) 0%, transparent 100%);
+    pointer-events: none;
+  }
+  .lp-hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(102,126,234,.25); border: 1px solid rgba(102,126,234,.4);
+    border-radius: 100px; padding: 6px 16px;
+    font-size: 12px; font-weight: 600; color: #a5b4fc;
+    letter-spacing: .08em; text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+  .lp-hero-eyebrow span { width: 6px; height: 6px; background: #667eea; border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+  .lp-hero h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(42px, 6vw, 72px); font-weight: 800;
+    color: #fff; line-height: 1.08; margin: 0 auto 24px;
+    max-width: 720px; position: relative;
+  }
+  .lp-hero h1 em { font-style: italic; color: #a5b4fc; }
+  .lp-hero-sub {
+    font-size: 18px; color: rgba(255,255,255,.7); line-height: 1.65;
+    max-width: 520px; margin: 0 auto 40px; font-weight: 400; position: relative;
+  }
+  .lp-cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; position: relative; }
+  .btn-lp-primary {
+    padding: 14px 32px; background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 700;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+    box-shadow: 0 8px 24px rgba(102,126,234,.45); transition: .2s; cursor: pointer;
+  }
+  .btn-lp-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(102,126,234,.55); }
+  .btn-lp-ghost {
+    padding: 14px 32px; background: rgba(255,255,255,.08); color: #fff;
+    border: 1.5px solid rgba(255,255,255,.25); border-radius: 12px; font-size: 15px;
+    font-weight: 600; text-decoration: none; display: inline-flex; align-items: center;
+    gap: 8px; backdrop-filter: blur(8px); transition: .2s;
+  }
+  .btn-lp-ghost:hover { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.45); }
+  .lp-hero-trust {
+    margin-top: 52px; display: flex; align-items: center; justify-content: center;
+    gap: 24px; flex-wrap: wrap; position: relative;
+  }
+  .lp-trust-badge {
+    display: flex; align-items: center; gap: 8px;
+    color: rgba(255,255,255,.55); font-size: 13px; font-weight: 500;
+  }
+  .lp-trust-badge svg { opacity: .6; }
 
-    .cta-buttons {
-        display: flex;
-        gap: 20px;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
+  /* ── Stats bar ── */
+  .lp-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 1px; background: #e8ecf4; border-radius: 20px; overflow: hidden;
+    margin-bottom: 80px; box-shadow: 0 2px 16px rgba(0,0,0,.05);
+  }
+  @media(max-width:700px){ .lp-stats { grid-template-columns: repeat(2,1fr); } }
+  .lp-stat {
+    background: #fff; padding: 32px 28px; text-align: center;
+    transition: .2s;
+  }
+  .lp-stat:hover { background: #fafbff; }
+  .lp-stat-num {
+    font-family: 'DM Mono', monospace; font-size: 36px; font-weight: 700;
+    color: #667eea; line-height: 1; margin-bottom: 8px;
+  }
+  .lp-stat-label { font-size: 13px; color: #8792a2; font-weight: 500; }
 
-    .btn {
-        padding: 14px 32px;
-        font-size: 16px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: all 0.3s;
-        text-decoration: none;
-        display: inline-block;
-    }
+  /* ── Section heading ── */
+  .lp-section-eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    color: #667eea; margin-bottom: 12px;
+  }
+  .lp-section-title {
+    font-size: 34px; font-weight: 700; color: #1a1f36;
+    line-height: 1.2; margin-bottom: 12px;
+  }
+  .lp-section-sub { font-size: 16px; color: #8792a2; line-height: 1.65; }
+  .lp-section-head { margin-bottom: 48px; max-width: 560px; }
 
-    .btn-primary {
-        background-color: white;
-        color: #667eea;
-    }
+  /* ── Features ── */
+  .lp-features { margin-bottom: 80px; }
+  .lp-features-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+  }
+  @media(max-width:900px){ .lp-features-grid { grid-template-columns: repeat(2,1fr); } }
+  @media(max-width:560px){ .lp-features-grid { grid-template-columns: 1fr; } }
+  .feat-card {
+    background: #fff; border-radius: 20px; padding: 32px;
+    border: 1px solid #eef0f8; transition: .25s;
+    position: relative; overflow: hidden;
+  }
+  .feat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #667eea, #764ba2); opacity: 0; transition: .25s;
+    border-radius: 20px 20px 0 0;
+  }
+  .feat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(102,126,234,.12); border-color: #d8dff5; }
+  .feat-card:hover::before { opacity: 1; }
+  .feat-icon-wrap {
+    width: 52px; height: 52px; border-radius: 14px;
+    background: linear-gradient(135deg, rgba(102,126,234,.12), rgba(118,75,162,.12));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; margin-bottom: 20px;
+  }
+  .feat-card h3 { font-size: 17px; font-weight: 700; color: #1a1f36; margin-bottom: 10px; }
+  .feat-card p { font-size: 14px; color: #6b7280; line-height: 1.65; margin: 0; }
 
-    .btn-primary:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-    }
+  /* ── How it works ── */
+  .lp-how { margin-bottom: 80px; }
+  .lp-steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 32px; position: relative; }
+  @media(max-width:700px){ .lp-steps { grid-template-columns: 1fr; } }
+  .lp-steps::before {
+    content: ''; position: absolute; top: 26px; left: calc(16.67% + 16px); right: calc(16.67% + 16px);
+    height: 2px; background: linear-gradient(90deg, #667eea, #764ba2); opacity: .25;
+  }
+  @media(max-width:700px){ .lp-steps::before { display: none; } }
+  .lp-step { text-align: center; }
+  .lp-step-num {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff; font-size: 18px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px; box-shadow: 0 8px 20px rgba(102,126,234,.35);
+    position: relative; z-index: 1;
+  }
+  .lp-step h3 { font-size: 16px; font-weight: 700; color: #1a1f36; margin-bottom: 8px; }
+  .lp-step p { font-size: 14px; color: #8792a2; line-height: 1.6; max-width: 240px; margin: 0 auto; }
 
-    .btn-secondary {
-        background-color: transparent;
-        color: white;
-        border: 2px solid white;
-    }
-
-    .btn-secondary:hover {
-        background-color: white;
-        color: #667eea;
-    }
-
-    .features {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 30px;
-        margin-bottom: 60px;
-    }
-
-    .feature-card {
-        background: white;
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-        text-align: center;
-        transition: all 0.3s;
-        border-top: 4px solid #667eea;
-    }
-
-    .feature-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
-    }
-
-    .feature-icon {
-        font-size: 48px;
-        margin-bottom: 15px;
-    }
-
-    .feature-card h3 {
-        font-size: 20px;
-        margin-bottom: 10px;
-        color: #2c3e50;
-    }
-
-    .feature-card p {
-        color: #7f8c8d;
-        font-size: 14px;
-        line-height: 1.6;
-    }
-
-    .stats {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 40px;
-        border-radius: 12px;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 30px;
-        text-align: center;
-        margin-bottom: 60px;
-    }
-
-    .stat {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .stat-number {
-        font-size: 36px;
-        font-weight: 700;
-    }
-
-    .stat-label {
-        font-size: 14px;
-        opacity: 0.95;
-    }
-
-    .section-title {
-        font-size: 32px;
-        font-weight: 700;
-        margin-bottom: 40px;
-        text-align: center;
-        color: #2c3e50;
-    }
-
-    @media (max-width: 768px) {
-        .hero h1 {
-            font-size: 32px;
-        }
-
-        .hero p {
-            font-size: 16px;
-        }
-
-        .cta-buttons {
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .btn {
-            width: 100%;
-        }
-    }
+  /* ── CTA strip ── */
+  .lp-cta-strip {
+    background: linear-gradient(135deg, #0f0c29, #302b63);
+    border-radius: 24px; padding: 64px 48px;
+    text-align: center; position: relative; overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .lp-cta-strip::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 80% at 50% 50%, rgba(102,126,234,.3) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .lp-cta-strip h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(28px, 4vw, 42px); font-weight: 800;
+    color: #fff; margin-bottom: 16px; position: relative;
+  }
+  .lp-cta-strip p { font-size: 16px; color: rgba(255,255,255,.65); margin-bottom: 36px; position: relative; }
 </style>
 
-<div class="hero">
-    <h1>💳 Welcome to TrackMint</h1>
-    <p>Smart expense tracking and credit card management for the modern professional. Take control of your finances effortlessly.</p>
-    <div class="cta-buttons">
-        {% if not current_user.is_authenticated %}
-        <a href="{{ url_for('auth.signup') }}" class="btn btn-primary">Get Started</a>
-        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary">Sign In</a>
-        {% else %}
-        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Go to Dashboard</a>
-        {% endif %}
-    </div>
-</div>
+<div class="lp">
 
-<div class="stats">
-    <div class="stat">
-        <div class="stat-number">50K+</div>
-        <div class="stat-label">Active Users</div>
+  <!-- ── Hero ── -->
+  <div class="lp-hero">
+    <div class="lp-hero-eyebrow">
+      <span></span> Smart Financial Tracking
     </div>
-    <div class="stat">
-        <div class="stat-number">$2.5B</div>
-        <div class="stat-label">Tracked Expenses</div>
+    <h1>Take control of your<br><em>money, effortlessly</em></h1>
+    <p class="lp-hero-sub">
+      TrackMint brings your expenses, income, and group spending into one beautiful dashboard — so you always know where you stand.
+    </p>
+    <div class="lp-cta-row">
+      {% if not current_user.is_authenticated %}
+      <a href="{{ url_for('auth.signup') }}" class="btn-lp-primary">Get started free →</a>
+      <a href="{{ url_for('auth.login') }}" class="btn-lp-ghost">Sign in</a>
+      {% else %}
+      <a href="{{ url_for('main.dashboard') }}" class="btn-lp-primary">Go to Dashboard →</a>
+      {% endif %}
     </div>
-    <div class="stat">
-        <div class="stat-number">99.9%</div>
-        <div class="stat-label">Uptime</div>
+    <div class="lp-hero-trust">
+      <div class="lp-trust-badge">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1L10.06 5.17L14.72 5.84L11.36 9.11L12.12 13.75L8 11.59L3.88 13.75L4.64 9.11L1.28 5.84L5.94 5.17L8 1Z" fill="currentColor"/></svg>
+        Free to use
+      </div>
+      <div class="lp-trust-badge">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="7" width="12" height="8" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Bank-level security
+      </div>
+      <div class="lp-trust-badge">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3.5l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Real-time insights
+      </div>
     </div>
-    <div class="stat">
-        <div class="stat-number">24/7</div>
-        <div class="stat-label">Support</div>
-    </div>
-</div>
+  </div>
 
-<h2 class="section-title">Key Features</h2>
-<div class="features">
-    <div class="feature-card">
-        <div class="feature-icon">📊</div>
+  <!-- ── Stats ── -->
+  <div class="lp-stats">
+    <div class="lp-stat">
+      <div class="lp-stat-num">50K+</div>
+      <div class="lp-stat-label">Active Users</div>
+    </div>
+    <div class="lp-stat">
+      <div class="lp-stat-num">$2.5B</div>
+      <div class="lp-stat-label">Tracked Expenses</div>
+    </div>
+    <div class="lp-stat">
+      <div class="lp-stat-num">99.9%</div>
+      <div class="lp-stat-label">Uptime</div>
+    </div>
+    <div class="lp-stat">
+      <div class="lp-stat-num">24/7</div>
+      <div class="lp-stat-label">Support</div>
+    </div>
+  </div>
+
+  <!-- ── Features ── -->
+  <div class="lp-features">
+    <div class="lp-section-head">
+      <div class="lp-section-eyebrow">Features</div>
+      <div class="lp-section-title">Everything you need to manage money smarter</div>
+      <div class="lp-section-sub">From solo expense tracking to shared group budgets — TrackMint has all the tools in one place.</div>
+    </div>
+    <div class="lp-features-grid">
+      <div class="feat-card">
+        <div class="feat-icon-wrap">📊</div>
         <h3>Smart Analytics</h3>
-        <p>Get detailed insights into your spending patterns with advanced analytics and visual reports.</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon">🧾</div>
+        <p>Visual breakdowns of your spending patterns, income trends, and budget health — updated in real time.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon-wrap">🧾</div>
         <h3>Receipt Management</h3>
-        <p>Upload and organize receipts automatically. Never lose track of your transactions again.</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon">👥</div>
-        <h3>Group Tracking</h3>
-        <p>Share expenses with friends and family. Split bills fairly and track shared spending.</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon">💰</div>
+        <p>Upload receipts, log expenses by category, and keep a complete audit trail — never lose a transaction again.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon-wrap">👥</div>
+        <h3>Group Expenses</h3>
+        <p>Create groups, add members, and split bills fairly. Perfect for housemates, trips, or any shared spending.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon-wrap">💰</div>
         <h3>Income Tracking</h3>
-        <p>Monitor multiple income streams and get a complete picture of your financial health.</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon">🏆</div>
+        <p>Log one-time and recurring income streams, see your monthly equivalent, and plan with confidence.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon-wrap">🏆</div>
         <h3>Leaderboards</h3>
-        <p>Compete with friends on savings goals and achieve better financial discipline.</p>
+        <p>Earn points for consistent tracking, build streaks, and compete with friends on savings discipline.</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon-wrap">🔒</div>
+        <h3>Secure by Default</h3>
+        <p>Your data is protected with enterprise-grade encryption. We never sell or share your financial information.</p>
+      </div>
     </div>
-    <div class="feature-card">
-        <div class="feature-icon">🔒</div>
-        <h3>Bank-Level Security</h3>
-        <p>Your financial data is protected with enterprise-grade encryption and security.</p>
-    </div>
-</div>
+  </div>
 
-{% if not current_user.is_authenticated %}
-<div style="background: #ecf0f1; padding: 40px; border-radius: 12px; text-align: center;">
-    <h2>Ready to take control of your finances?</h2>
-    <p style="margin-top: 10px; font-size: 16px; color: #7f8c8d;">Join thousands of users who are already tracking their expenses with TrackMint.</p>
-    <a href="{{ url_for('auth.signup') }}" class="btn btn-primary" style="margin-top: 20px; background-color: #667eea; color: white;">Create Free Account</a>
+  <!-- ── How it works ── -->
+  <div class="lp-how">
+    <div class="lp-section-head" style="text-align:center; margin: 0 auto 48px;">
+      <div class="lp-section-eyebrow" style="text-align:center;">How it works</div>
+      <div class="lp-section-title" style="text-align:center;">Up and running in minutes</div>
+    </div>
+    <div class="lp-steps">
+      <div class="lp-step">
+        <div class="lp-step-num">1</div>
+        <h3>Create your account</h3>
+        <p>Sign up free — no credit card required. Your dashboard is ready instantly.</p>
+      </div>
+      <div class="lp-step">
+        <div class="lp-step-num">2</div>
+        <h3>Log expenses &amp; income</h3>
+        <p>Add receipts, set recurring income, and organise transactions by category.</p>
+      </div>
+      <div class="lp-step">
+        <div class="lp-step-num">3</div>
+        <h3>Track &amp; improve</h3>
+        <p>Review insights, hit saving goals, climb the leaderboard, and stay on top of your finances.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CTA strip ── -->
+  {% if not current_user.is_authenticated %}
+  <div class="lp-cta-strip">
+    <h2>Ready to take control?</h2>
+    <p>Join thousands of users who track smarter with TrackMint.</p>
+    <div class="lp-cta-row">
+      <a href="{{ url_for('auth.signup') }}" class="btn-lp-primary">Create free account →</a>
+      <a href="{{ url_for('auth.login') }}" class="btn-lp-ghost">Sign in</a>
+    </div>
+  </div>
+  {% endif %}
+
 </div>
-{% endif %}
 {% endblock %}

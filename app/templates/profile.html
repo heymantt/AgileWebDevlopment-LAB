@@ -167,7 +167,7 @@
         background-color: rgba(0, 0, 0, 0.5);
     }
 
-    .modal.show {
+    .modal.active {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -300,15 +300,15 @@
         <div class="profile-body">
             <div class="stats-grid">
                 <div class="stat-mini">
-                    <div class="stat-mini-value">0</div>
+                    <div class="stat-mini-value">{{ receipt_count }}</div>
                     <div class="stat-mini-label">Receipts</div>
                 </div>
                 <div class="stat-mini">
-                    <div class="stat-mini-value">0</div>
+                    <div class="stat-mini-value">{{ group_count }}</div>
                     <div class="stat-mini-label">Groups</div>
                 </div>
                 <div class="stat-mini">
-                    <div class="stat-mini-value">0</div>
+                    <div class="stat-mini-value">{{ total_points }}</div>
                     <div class="stat-mini-label">Points</div>
                 </div>
             </div>
@@ -400,19 +400,19 @@
 
 <script>
     function openEditProfileModal() {
-        document.getElementById('editProfileModal').classList.add('show');
+        document.getElementById('editProfileModal').classList.add('active');
     }
 
     function closeEditProfileModal() {
-        document.getElementById('editProfileModal').classList.remove('show');
+        document.getElementById('editProfileModal').classList.remove('active');
     }
 
     function openChangePasswordModal() {
-        document.getElementById('changePasswordModal').classList.add('show');
+        document.getElementById('changePasswordModal').classList.add('active');
     }
 
     function closeChangePasswordModal() {
-        document.getElementById('changePasswordModal').classList.remove('show');
+        document.getElementById('changePasswordModal').classList.remove('active');
         document.getElementById('changePasswordForm').reset();
     }
 
@@ -420,13 +420,14 @@
         e.preventDefault();
         
         const username = document.getElementById('editUsername').value.trim();
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         try {
             const response = await fetch('{{ url_for("main.update_profile") }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token() }}'
+                    'X-CSRFToken': csrfToken
                 },
                 body: JSON.stringify({
                     username: username
@@ -452,13 +453,14 @@
         const oldPassword = document.getElementById('oldPassword').value;
         const newPassword = document.getElementById('newPassword').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         try {
             const response = await fetch('{{ url_for("main.change_password") }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token() }}'
+                    'X-CSRFToken': csrfToken
                 },
                 body: JSON.stringify({
                     old_password: oldPassword,
@@ -480,18 +482,17 @@
         }
     });
 
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-        const editModal = document.getElementById('editProfileModal');
-        const passwordModal = document.getElementById('changePasswordModal');
-        
-        if (event.target == editModal) {
-            editModal.classList.remove('show');
+    // Close modal when clicking on the backdrop (outside the modal-content box)
+    document.getElementById('editProfileModal').addEventListener('click', function(event) {
+        if (event.target === this) {
+            this.classList.remove('active');
         }
-        if (event.target == passwordModal) {
-            passwordModal.classList.remove('show');
+    });
+    document.getElementById('changePasswordModal').addEventListener('click', function(event) {
+        if (event.target === this) {
+            this.classList.remove('active');
         }
-    }
+    });
 </script>
 
 {% endblock %}

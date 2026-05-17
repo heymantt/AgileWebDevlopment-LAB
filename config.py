@@ -4,11 +4,13 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 
+from dotenv import load_dotenv
 
+load_dotenv()
 class Config:
     """Base configuration shared by all environments."""
 
-    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
+    SECRET_KEY = os.getenv("SECRET_KEY", "CITS5505")
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL",
         f"sqlite:///{BASE_DIR / 'trackmint.db'}"
@@ -30,7 +32,13 @@ class Config:
 
     # Flask general settings
     TEMPLATES_AUTO_RELOAD = True
-
+    
+    MAIL_SERVER = os.environ.get("MAIL_SERVER", "smtp.gmail.com").strip()
+    MAIL_PORT = int(os.environ.get("MAIL_PORT", 587))
+    MAIL_USE_TLS = os.environ.get("MAIL_USE_TLS", "true").strip().lower() == "true"
+    MAIL_USERNAME = os.environ.get("MAIL_USERNAME", "").strip()
+    MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD", "").strip()
+    MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER", MAIL_USERNAME).strip()
 
 class DevelopmentConfig(Config):
     DEBUG = True

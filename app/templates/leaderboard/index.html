@@ -2,102 +2,252 @@
 
 {% block content %}
 <style>
-    .page-header {
-        margin-bottom: 40px;
-    }
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500;600&display=swap');
 
-    .page-header h1 {
-        font-size: 32px;
-        color: #2c3e50;
-        margin-bottom: 10px;
-    }
+.lb { font-family: 'DM Sans', sans-serif; max-width: 860px; margin: 0 auto; padding: 32px 24px 60px; }
 
-    .page-header p {
-        color: #7f8c8d;
-        font-size: 16px;
-    }
+/* ── Header ── */
+.lb-header {
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  border-radius: 20px;
+  padding: 48px 40px;
+  margin-bottom: 32px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+.lb-header::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 80% at 50% 50%, rgba(102,126,234,.3) 0%, transparent 70%);
+  pointer-events: none;
+}
+.lb-header-eyebrow {
+  font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: #a5b4fc; margin-bottom: 12px; position: relative;
+}
+.lb-header h1 {
+  font-size: 36px; font-weight: 700; margin: 0 0 10px; position: relative;
+}
+.lb-header p {
+  font-size: 15px; color: rgba(255,255,255,.65); margin: 0; position: relative;
+}
 
-    .leaderboard-container {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-        overflow: hidden;
-    }
+/* ── Podium (top 3) ── */
+.lb-podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+.pod-item {
+  flex: 1; max-width: 220px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 16px 20px;
+  text-align: center;
+  border: 1px solid #f0f2f7;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+  transition: .2s;
+  position: relative;
+}
+.pod-item:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,.1); }
+.pod-item.rank-1 {
+  padding-top: 32px;
+  border-color: #fbbf24;
+  box-shadow: 0 4px 20px rgba(251,191,36,.2);
+}
+.pod-item.rank-2 { border-color: #d1d5db; }
+.pod-item.rank-3 { border-color: #d97706; }
+.pod-medal { font-size: 36px; display: block; margin-bottom: 12px; }
+.pod-rank {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; color: #8792a2; margin-bottom: 6px;
+}
+.pod-username {
+  font-size: 16px; font-weight: 700; color: #1a1f36; margin-bottom: 4px;
+}
+.pod-username.is-you { color: #667eea; }
+.pod-you-badge {
+  display: inline-block; background: #f0f2ff; color: #667eea;
+  border-radius: 20px; padding: 2px 8px; font-size: 11px; font-weight: 600;
+  margin-bottom: 10px;
+}
+.pod-pts {
+  font-family: 'DM Mono', monospace;
+  font-size: 22px; font-weight: 700; color: #667eea; display: block; margin-bottom: 6px;
+}
+.pod-streak { font-size: 12px; color: #8792a2; }
+.pod-streak strong { color: #f97316; }
 
-    .leaderboard-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 20px;
-        display: grid;
-        grid-template-columns: 60px 1fr 150px 150px;
-        gap: 20px;
-        font-weight: 600;
-    }
+/* ── Full table ── */
+.lb-table-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #f0f2f7;
+  box-shadow: 0 2px 12px rgba(0,0,0,.05);
+  overflow: hidden;
+}
+.lb-table-head {
+  display: grid;
+  grid-template-columns: 60px 1fr 130px 130px;
+  gap: 0;
+  background: #fafbff;
+  border-bottom: 1px solid #f0f2f7;
+  padding: 14px 20px;
+}
+.lb-th {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .07em; color: #8792a2;
+}
+.lb-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 130px 130px;
+  gap: 0;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f8fafc;
+  align-items: center;
+  transition: .15s;
+}
+.lb-row:last-child { border-bottom: none; }
+.lb-row:hover { background: #fafbff; }
+.lb-row.is-you { background: #f5f7ff; }
+.lb-row.is-you:hover { background: #eef1ff; }
 
-    .leaderboard-body {
-        padding: 20px;
-        text-align: center;
-    }
+.lb-rank-cell {
+  display: flex; align-items: center; gap: 6px;
+}
+.lb-rank-num {
+  font-size: 14px; font-weight: 700; color: #8792a2; font-family: 'DM Mono', monospace;
+  min-width: 28px;
+}
+.lb-rank-num.top { color: #1a1f36; }
 
-    .empty-icon {
-        font-size: 64px;
-        margin-bottom: 20px;
-    }
+.lb-user-cell { display: flex; align-items: center; gap: 10px; }
+.lb-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff; font-size: 14px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.lb-username { font-size: 14px; font-weight: 600; color: #1a1f36; }
+.lb-you-tag { font-size: 11px; color: #667eea; font-weight: 500; }
 
-    .empty-text {
-        font-size: 18px;
-        color: #2c3e50;
-        margin-bottom: 10px;
-        font-weight: 600;
-    }
+.lb-pts {
+  font-family: 'DM Mono', monospace;
+  font-size: 14px; font-weight: 600; color: #667eea;
+}
 
-    .empty-subtext {
-        color: #7f8c8d;
-    }
+.lb-streak { font-size: 13px; color: #8792a2; }
+.lb-streak strong { color: #f97316; font-weight: 700; }
+
+/* ── Empty state ── */
+.lb-empty {
+  padding: 64px 32px;
+  text-align: center;
+  color: #8792a2;
+}
+.lb-empty-icon { font-size: 56px; margin-bottom: 16px; display: block; }
+.lb-empty h3 { font-size: 18px; font-weight: 700; color: #1a1f36; margin: 0 0 8px; }
+.lb-empty p { font-size: 14px; margin: 0; line-height: 1.6; }
+
+@media(max-width:640px){
+  .lb-podium { flex-direction: column; align-items: center; }
+  .pod-item { max-width: 100%; width: 100%; }
+  .lb-table-head, .lb-row { grid-template-columns: 48px 1fr 80px 80px; padding: 12px 14px; }
+}
 </style>
 
-<div class="page-header">
-    <h1>🎆 Leaderboard</h1>
-    <p>Compete with others and earn badges for achieving savings goals.</p>
-</div>
+<div class="lb">
 
-<div class="leaderboard-container">
-    <div class="leaderboard-header">
-        <div>Rank</div>
-        <div>User</div>
-        <div>Points</div>
-        <div>Streak</div>
-    </div>
-    <div class="leaderboard-body">
-        {% if users %}
-            {% for user in users %}
-                <div style="display: grid; grid-template-columns: 60px 1fr 150px 150px; gap: 20px; padding: 16px; border-bottom: 1px solid #ecf0f1; align-items: center; text-align: left;">
-                    <div style="font-weight: 700;">
-                        #{{ loop.index }}
-                    </div>
+  <!-- Header -->
+  <div class="lb-header">
+    <div class="lb-header-eyebrow">🏆 Community</div>
+    <h1>Leaderboard</h1>
+    <p>Earn points by tracking expenses consistently. Build streaks, top the board.</p>
+  </div>
 
-                    <div>
-                        <strong>{{ user.username }}</strong>
-                        {% if user.id == current_user.id %}
-                            <span style="color: #667eea; font-size: 13px;">(You)</span>
-                        {% endif %}
-                    </div>
+  {% if users %}
 
-                    <div>
-                        {{ user.total_points }}
-                    </div>
+  <!-- Podium (top 3) -->
+  {% if users|length >= 1 %}
+  <div class="lb-podium">
+    {# Reorder: 2nd, 1st, 3rd for visual podium effect #}
+    {% set ordered = [] %}
+    {% if users|length >= 2 %}{% set _ = ordered.append(users[1]) %}{% endif %}
+    {% set _ = ordered.append(users[0]) %}
+    {% if users|length >= 3 %}{% set _ = ordered.append(users[2]) %}{% endif %}
 
-                    <div>
-                        {{ user.current_streak }} day{% if user.current_streak != 1 %}s{% endif %}
-                    </div>
-                </div>
-            {% endfor %}
+    {% for user in ordered %}
+      {% set real_rank = users.index(user) + 1 %}
+      <div class="pod-item rank-{{ real_rank }}">
+        {% if real_rank == 1 %}
+          <span class="pod-medal">🥇</span>
+        {% elif real_rank == 2 %}
+          <span class="pod-medal">🥈</span>
         {% else %}
-            <div class="empty-icon">🏆</div>
-            <div class="empty-text">No users yet</div>
-            <div class="empty-subtext">Users will appear here as they track their expenses.</div>
+          <span class="pod-medal">🥉</span>
         {% endif %}
-    </div>
-</div>
+        <div class="pod-rank">Rank #{{ real_rank }}</div>
+        <div class="pod-username {% if user.id == current_user.id %}is-you{% endif %}">
+          {{ user.username }}
+        </div>
+        {% if user.id == current_user.id %}<div class="pod-you-badge">You</div>{% endif %}
+        <span class="pod-pts">{{ user.total_points }} pts</span>
+        <div class="pod-streak">
+          🔥 <strong>{{ user.current_streak }}</strong> day streak
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 
+  <!-- Full rankings table -->
+  <div class="lb-table-card">
+    <div class="lb-table-head">
+      <div class="lb-th">Rank</div>
+      <div class="lb-th">User</div>
+      <div class="lb-th">Points</div>
+      <div class="lb-th">Streak</div>
+    </div>
+
+    {% for user in users %}
+    <div class="lb-row {% if user.id == current_user.id %}is-you{% endif %}">
+      <div class="lb-rank-cell">
+        {% if loop.index == 1 %}
+          <span class="lb-rank-num top">🥇</span>
+        {% elif loop.index == 2 %}
+          <span class="lb-rank-num top">🥈</span>
+        {% elif loop.index == 3 %}
+          <span class="lb-rank-num top">🥉</span>
+        {% else %}
+          <span class="lb-rank-num">#{{ loop.index }}</span>
+        {% endif %}
+      </div>
+      <div class="lb-user-cell">
+        <div class="lb-avatar">{{ user.username[0]|upper }}</div>
+        <div>
+          <div class="lb-username">{{ user.username }}{% if user.id == current_user.id %} <span class="lb-you-tag">(You)</span>{% endif %}</div>
+        </div>
+      </div>
+      <div class="lb-pts">{{ user.total_points }} pts</div>
+      <div class="lb-streak">🔥 <strong>{{ user.current_streak }}</strong> day{{ 's' if user.current_streak != 1 else '' }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="lb-table-card">
+    <div class="lb-empty">
+      <span class="lb-empty-icon">🏆</span>
+      <h3>No rankings yet</h3>
+      <p>Start tracking expenses to earn points and appear on the leaderboard.</p>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
 {% endblock %}

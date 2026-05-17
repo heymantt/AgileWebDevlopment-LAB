@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>TrackMint</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -9,30 +10,31 @@
 <body>
     <header>
         <div class="header-container">
-            <div class="logo">
+            <a href="{{ url_for('main.landing') }}" class="logo">
                 <span class="logo-icon">💳</span>
-                <span>TrackMint</span>
-            </div>
+                TrackMint
+            </a>
             <nav>
                 <div class="nav-primary">
-                    <a href="{{ url_for('main.landing') }}">Home</a>
                     {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
-                    <a href="{{ url_for('receipts.index') }}">Expenses</a>
-                    <a href="{{ url_for('income.income_home') }}">Income</a>
-                    <a href="{{ url_for('groups.groups_home') }}">Groups</a>
-                    <a href="{{ url_for('leaderboard.leaderboard_home') }}">Leaderboard</a>
+                    <a href="{{ url_for('main.dashboard') }}" class="nav-link">Dashboard</a>
+                    <a href="{{ url_for('receipts.index') }}" class="nav-link">Expenses</a>
+                    <a href="{{ url_for('income.income_home') }}" class="nav-link">Income</a>
+                    <a href="{{ url_for('groups.groups_home') }}" class="nav-link">Groups</a>
+                    <a href="{{ url_for('leaderboard.leaderboard_home') }}" class="nav-link">Leaderboard</a>
+                    {% else %}
+                    <a href="{{ url_for('main.landing') }}" class="nav-link">Home</a>
                     {% endif %}
                 </div>
                 {% if current_user.is_authenticated %}
                 <div class="nav-user">
-                    <a href="{{ url_for('main.profile') }}">👤 {{ current_user.username }}</a>
+                    <a href="{{ url_for('main.profile') }}" class="nav-link">👤 {{ current_user.username }}</a>
                     <a href="{{ url_for('auth.logout') }}">Logout</a>
                 </div>
                 {% else %}
                 <div class="nav-user">
-                    <a href="{{ url_for('auth.login') }}">Login</a>
-                    <a href="{{ url_for('auth.signup') }}">Sign Up</a>
+                    <a href="{{ url_for('auth.login') }}" class="nav-link">Sign in</a>
+                    <a href="{{ url_for('auth.signup') }}">Get started</a>
                 </div>
                 {% endif %}
             </nav>
@@ -64,8 +66,23 @@
                 <a href="#">Terms of Service</a>
                 <a href="#">Contact</a>
             </div>
-            <p>&copy; 2026 TrackMint. All rights reserved. Smart Expense Tracking for Everyone.</p>
+            <p>&copy; 2026 TrackMint. Smart expense tracking for everyone.</p>
         </div>
     </footer>
+
+    <script>
+      // Highlight active nav link
+      (function() {
+        const path = window.location.pathname;
+        document.querySelectorAll('.nav-link').forEach(function(a) {
+          const href = a.getAttribute('href');
+          if (href && href !== '/' && path.startsWith(href)) {
+            a.style.background = '#f0f2ff';
+            a.style.color = '#667eea';
+            a.style.fontWeight = '600';
+          }
+        });
+      })();
+    </script>
 </body>
 </html>
