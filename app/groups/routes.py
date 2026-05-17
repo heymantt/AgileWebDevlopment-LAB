@@ -505,6 +505,7 @@ def edit_group_expense(group_id, expense_id):
         category = str(data.get('category', '') or '').strip()
         notes = str(data.get('notes', '') or '').strip()
         expense_date_raw = str(data.get('expense_date', '') or '').strip()
+        amount_raw = data.get('amount')
 
         if not merchant or not category or not expense_date_raw:
             return jsonify({'success': False, 'message': 'Description, category and date are required'}), 400
@@ -513,6 +514,16 @@ def edit_group_expense(group_id, expense_id):
             expense_date = datetime.strptime(expense_date_raw, "%Y-%m-%d").date()
         except ValueError:
             return jsonify({'success': False, 'message': 'Invalid date format'}), 400
+
+        # Update amount if provided
+        if amount_raw is not None:
+            try:
+                amount = float(amount_raw)
+                if amount < 0:
+                    return jsonify({'success': False, 'message': 'Amount must be positive'}), 400
+                expense.amount = amount
+            except (ValueError, TypeError):
+                return jsonify({'success': False, 'message': 'Invalid amount format'}), 400
 
         expense.merchant = merchant
         expense.category = category
